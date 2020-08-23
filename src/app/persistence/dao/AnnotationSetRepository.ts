@@ -14,7 +14,7 @@ export class AnnotationSetRepository extends GenericRepository<AnnotationSet>{
     }
 
     public isNew(id: Identifier): boolean {
-        return id == null || Number.isNaN(id) || id <= 0;
+        return id == null || undefined || Number.isNaN(id) || id <= 0;
     }
 
     public getId(entity: AnnotationSet): Identifier {

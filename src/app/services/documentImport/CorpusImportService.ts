@@ -12,6 +12,8 @@ import { TagRepository } from '../../persistence/dao/TagRepository';
 import { Annotation } from '../../persistence/model/Annotation';
 import { AnnotationSetRepository } from '../../persistence/dao/AnnotationSetRepository';
 import { AnnotationRepository } from '../../persistence/dao/AnnotationRepository';
+import { InternalServerError } from 'typescript-rest/dist/server/model/errors';
+import { Readable } from 'stream';
 
 @Singleton
 export class CorpusImportService {
@@ -20,13 +22,19 @@ export class CorpusImportService {
     private corpusRepository!: CorpusRepository
 
 
-    public async import(corpusId: number, name: string, annotationSetName: string, files: Express.Multer.File[]): Promise<Corpus> {
-        let corpus: Corpus = new Corpus({ corpusId: corpusId, name: name, description: "Imported Corpus" })
+    public async import(name: string, annotationSetName: string, files: Express.Multer.File[]): Promise<Corpus> {
+        let corpus: Corpus = await this.corpusRepository.save({ name: name, description: "Imported Corpus" } as Corpus)
 
         /** @todo Chose importer by file type */
         const importer = new NoStaDImporter(corpus)
         // import files as documents and tags
-        files.forEach(async (file) => await importer.importFile(corpus, file, annotationSetName))
+        try {
+            files.forEach(async (file) => await importer.importFile(corpus, file, annotationSetName))
+        }
+        catch (ex) {
+            throw new InternalServerError("Exception in importFile: " + ex)
+        }
+
         // save corpus
         return this.corpusRepository.save(corpus)
     }
@@ -49,6 +57,9 @@ interface Record {
  * for a description of the format.
  */
 class NoStaDImporter {
+    @Inject
+    private corpusRepository!: CorpusRepository
+
     @Inject
     private documentRepository!: DocumentRepository
 
@@ -114,7 +125,7 @@ class NoStaDImporter {
 
     async importFile(corpus: Corpus, file: Express.Multer.File, annotationSetName: string) {
         let tagSet = new Set<string>()
-        let stream = fs.createReadStream(file.path)
+        let stream = Readable.from(file.buffer)
         let input = createInterface({
             input: stream,
             crlfDelay: Infinity
@@ -147,52 +158,78 @@ class NoStaDImporter {
         }
 
         // Get all annotations supported by 
-        let annotations = new Map<string, Annotation>()
-        corpus.annotationSets.forEach((annotationSet) => {
-            annotationSet.annotations.forEach((annotation) => {
-                annotations.set(annotation.name, annotation)
+        let annotationMap = new Map<string, Annotation>()
+        if (corpus.annotationSets) {
+            corpus.annotationSets.forEach((annotationSet) => {
+                annotationSet.annotations.forEach((annotation) => {
+                    annotationMap.set(annotation.name, annotation)
+                })
             })
-        })
+        }
 
         // Get the tags wich are not already present and create a new AnnotationSet
-        const newTags = [...tagSet].filter((name) => annotations.has(name))
+        const newTags = [...tagSet].filter((name) => !annotationMap.has(name))
+        console.log('new tags: %o', newTags)
+
         if (newTags.length > 0) {
-            let annotationSet: AnnotationSet = await this.annotationSetRepository.save({
-                name: annotationSetName,
-                description: "Imported from " + file.filename
-            } as AnnotationSet)
-            corpus.addAnnotationSet(annotationSet)
+            try {
+                let annotationSet: AnnotationSet = await this.annotationSetRepository.save({
+                    name: annotationSetName,
+                    description: "Imported from " + file.filename
+                } as AnnotationSet)
+                corpus.addAnnotationSet(annotationSet)
+                this.corpusRepository.save(corpus)
 
-            newTags.forEach(async (name) => {
-                let annotation: Annotation = await this.annotationRepository.save({
-                    name: name
-                } as Annotation)
-                annotationSet.annotations.push(annotation)
-                annotations.set(annotation.name, annotation)
-            })
-
+                newTags.forEach(async (name) => {
+                    try {
+                        let annotation: Annotation = await this.annotationRepository.save({
+                            name: name,
+                            annotationSetId: annotationSet.annotationSetId
+                        } as Annotation)
+                        // annotationSet.annotations.push(annotation)
+                        annotationMap.set(annotation.name, annotation)
+                    }
+                    catch (ex) {
+                        console.log('failed to create annotation "' + name + '": ' + ex)
+                        throw new InternalServerError('failed to create annotation "' + name + '": ' + ex)
+                    }
+                })
+                this.annotationSetRepository.save(annotationSet)
+            }
+            catch (ex) {
+                console.log('failed to create annotationset"' + annotationSetName + '": ' + ex)
+                throw new InternalServerError('failed to create annotationset: ' + ex)
+            }
         }
 
         let document: Document = await this.documentRepository.save({
-            filename: file.filename,
+            filename: file.filename ? file.filename : "Import_" + Hashing.sha256Hash(file.buffer),
             content: text,
             corpusId: corpus.corpusId,
             documentHash: Hashing.sha256Hash(text)
         } as Document, { raw: true })
+        console.log('documentId: %o', document.documentId)
 
-        corpus.addDocument(document)
+        // corpus.addDocument(document)
+        // this.corpusRepository.save(corpus)
 
-
+        console.log('saving tags')
         tags.forEach(async (marker) => {
-            let annotation = annotations.get(marker.name)
+            let annotation = annotationMap.get(marker.name)
             if (annotation) {
                 let tag = await this.tagRepository.save({
                     annotationId: annotation.annotationId,
                     startIndex: marker.start,
-                    endIndex: marker.end
+                    endIndex: marker.end,
+                    documentId: document.documentId
                 } as Tag)
-                document.tags.push(tag)
+                console.log('tag saved: %o %d %d', tag.id, tag.startIndex, tag.endIndex)
+                // document.tags.push(tag)
+            }
+            else {
+                console.log('no annotation found for tag name %s', marker.name)
             }
         })
+        this.documentRepository.save(document)
     }
 }
