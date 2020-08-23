@@ -1,9 +1,9 @@
 import "../index";
-import {Errors} from "typescript-rest";
-import {Model, Repository} from "sequelize-typescript";
+import { Errors } from "typescript-rest";
+import { Model, Repository } from "sequelize-typescript";
 import sequelize from "../index";
-import {FindOptions, Identifier, InstanceUpdateOptions} from "sequelize";
-import {ScopeOptions} from "sequelize/types/lib/model";
+import { FindOptions, Identifier, InstanceUpdateOptions } from "sequelize";
+import { ScopeOptions } from "sequelize/types/lib/model";
 
 export abstract class GenericRepository<T extends Model<T>> {
 
@@ -43,7 +43,7 @@ export abstract class GenericRepository<T extends Model<T>> {
         return this.repository.findAll();
     }
 
-    public async save(entity: T, options?:InstanceUpdateOptions): Promise<T> {
+    public async save(entity: T, options?: InstanceUpdateOptions): Promise<T> {
         await this.validate(entity);
         if (this.isNew(this.getId(entity))) {
             return this.repository.build(entity).save(options);
@@ -56,6 +56,10 @@ export abstract class GenericRepository<T extends Model<T>> {
     public async delete(id: Identifier): Promise<void> {
         let entity = await this.read(id);
         entity.destroy();
+    }
+
+    public getByName(name: string): Promise<T> {
+        return this.repository.findOne({ where: { name: name } });
     }
 
     public getSequelizeRepository(): Repository<T> {
