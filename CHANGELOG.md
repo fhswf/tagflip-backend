@@ -1,3 +1,11 @@
+# [1.4.0](https://github.com/fhswf/tagflip-backend/compare/v1.3.1...v1.4.0) (2020-08-25)
+
+
+### Features
+
+* Adding possibility to filter by field on search ([e0b27ba](https://github.com/fhswf/tagflip-backend/commit/e0b27bae626392014d9b35903a1b689330f0888d))
+* Improving performance on document table in corpus settings ([fb96348](https://github.com/fhswf/tagflip-backend/commit/fb963485896f40cc527f0e58aab6ffe950a77f69))
+
 ## [1.3.1](https://github.com/fhswf/tagflip-backend/compare/v1.3.0...v1.3.1) (2020-08-23)
 
 
