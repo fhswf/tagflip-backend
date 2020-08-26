@@ -5,7 +5,6 @@ import {Inject} from "typescript-ioc";
 import {DocumentRepository} from "../persistence/dao/DocumentRepository";
 import {AnnotationSetRepository} from "../persistence/dao/AnnotationSetRepository";
 import {AnnotationSet} from "../persistence/model/AnnotationSet";
-import {Document} from "../persistence/model/Document";
 
 @Path("corpus")
 export class CorpusController {

@@ -7,7 +7,8 @@ import {Document} from "../persistence/model/Document";
 import {Op, OrderItem} from "sequelize";
 import {SearchFilter} from "@fhswf/tagflip-common"
 import "reflect-metadata";
-import SearchFilterImpl, {ConvertSearchFilter, SearchFilterParam} from "./util/SearchFilter";
+import SearchFilterImpl, {ConvertSearchFilter, SearchFilterParam} from "./decorator/SearchFilter";
+import {BeginTransaction} from "../persistence/decorator/Transaction";
 
 
 @Path("corpus/:corpusId/document")
@@ -70,6 +71,7 @@ export class DocumentController {
 
     @Path("import")
     @POST
+    @BeginTransaction
     public async documentImport(@PathParam("corpusId") corpusId: number, @FilesParam("files") files: Express.Multer.File[]): Promise<Document[]> {
         return this.documentImportService.import(corpusId, files);
     }
