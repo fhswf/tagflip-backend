@@ -1,7 +1,7 @@
 import "../index";
 import {Errors} from "typescript-rest";
 import {Model, Repository} from "sequelize-typescript";
-import sequelize from "../index";
+import {sequelize} from "../index";
 import {CountOptions, FindOptions, Identifier, InstanceUpdateOptions} from "sequelize";
 import {ScopeOptions} from "sequelize/types/lib/model";
 

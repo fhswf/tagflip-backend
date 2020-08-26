@@ -11,7 +11,7 @@ import * as chardet from "chardet"
 import * as rimraf from "rimraf"
 
 @mimetypes(["application/zip", "application/x-zip-compressed", "multipart/x-zip"])
-export default class ZipFileExtractor extends DocumentPersistor {
+export default class ZipPersistor extends DocumentPersistor {
 
     async persist(corpusId: number, file: Express.Multer.File): Promise<Document[]> {
         let readableBuffer = new streamBuffers.ReadableStreamBuffer();
@@ -52,10 +52,17 @@ export default class ZipFileExtractor extends DocumentPersistor {
                 let newDocs = await persistor.persist(corpusId, multerFile);
                 documents.push(... newDocs)
             } catch (err) {
+                rimraf.sync(path.join(tmpZip.name, "/*"))
+                tmpZip.removeCallback()
+                console.log("Deleted temporary directory:", tmpZip.name)
+
                 errors.push(err) // TODO: DO STH WITH ERRORS
+                throw err;
+            }
+            finally {
+
             }
         }
-
         rimraf.sync(path.join(tmpZip.name, "/*"))
         tmpZip.removeCallback()
         console.log("Deleted temporary directory:", tmpZip.name)
