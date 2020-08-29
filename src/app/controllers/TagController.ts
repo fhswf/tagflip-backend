@@ -1,4 +1,4 @@
-import {
+    import {
     DELETE,
     Errors,
     FileParam,
@@ -8,7 +8,7 @@ import {
     Path,
     PathParam,
     POST,
-    PreProcessor, PUT
+    PreProcessor, PUT, QueryParam
 } from "typescript-rest";
 import {Inject} from "typescript-ioc";
 import {CorpusRepository} from "../persistence/dao/CorpusRepository";
@@ -19,7 +19,7 @@ import {Annotation} from "../persistence/model/Annotation";
 import {Tag} from "../persistence/model/Tag";
 import {TagRepository} from "../persistence/dao/TagRepository";
 
-@Path("corpus/:corpusId/document/:documentId/tag")
+@Path("document/:documentId/tag")
 export class TagController {
 
     @Inject
@@ -32,14 +32,16 @@ export class TagController {
     private tagRepository!: TagRepository;
 
     @GET
-    public async list(@PathParam("corpusId") corpusId: number, @PathParam("documentId") documentId: number): Promise<Tag[]> {
+    public async list(@PathParam("documentId") documentId: number, @QueryParam("annotationTaskId") annotationTaskId : number): Promise<Tag[]> {
         let document : Document = await this.documentRepository.read(documentId);
+        if(annotationTaskId)
+            return document.getTags({where: {annotationTaskId}});
         return document.getTags();
     }
 
     @Path(":id")
     @GET
-    public async read(@PathParam("corpusId") corpusId: number, @PathParam("documentId") documentId: number, @PathParam("id") tagId: number): Promise<Tag> {
+    public async read(@PathParam("documentId") documentId: number, @PathParam("id") tagId: number): Promise<Tag> {
         let tag = await this.tagRepository.read(tagId);
         if(tag.documentId !== documentId) {
             throw new Errors.NotFoundError("Given document with ID " + documentId + " does not contain tag");
@@ -48,7 +50,7 @@ export class TagController {
     }
 
     @POST
-    public async create(@PathParam("corpusId") corpusId: number, @PathParam("documentId") documentId: number, tag: Tag): Promise<Tag> {
+    public async create(@PathParam("documentId") documentId: number, tag: Tag): Promise<Tag> {
         tag.documentId = documentId;
         tag = await this.tagRepository.save(tag)
 
@@ -56,7 +58,7 @@ export class TagController {
     }
 
     @PUT
-    public async update(@PathParam("corpusId") corpusId: number, @PathParam("documentId") documentId: number, tag: Tag): Promise<Tag | null> {
+    public async update(@PathParam("documentId") documentId: number, tag: Tag): Promise<Tag | null> {
         tag.documentId = documentId;
         tag = await this.tagRepository.save(tag)
 
@@ -65,7 +67,7 @@ export class TagController {
 
     @Path(":id")
     @DELETE
-    public async delete(@PathParam("corpusId") corpusId: number, @PathParam("documentId") documentId: number, @PathParam("id") tagId: number): Promise<void> {
+    public async delete(@PathParam("documentId") documentId: number, @PathParam("id") tagId: number): Promise<void> {
         let tag = await this.tagRepository.read(tagId);
         if(tag.documentId !== documentId) {
             throw new Errors.NotFoundError("Given document with ID " + documentId + " does not contain tag");

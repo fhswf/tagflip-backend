@@ -13,7 +13,7 @@ import {AnnotationSet} from "./AnnotationSet";
 import {AnnotationAttributes} from "@fhswf/tagflip-common";
 
 @Table({
-    tableName: "annotation"
+    tableName: "Annotation"
 })
 export class Annotation extends Model<Annotation> implements AnnotationAttributes{
 

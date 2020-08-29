@@ -60,3 +60,6 @@ location /tagflip/api/v1
     	proxy_set_header X-Forwarded-For $remote_addr;
 	}
 ```
+
+# Contributors
+[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/0)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/0)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/1)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/1)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/2)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/2)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/3)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/3)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/4)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/4)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/5)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/5)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/6)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/6)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/7)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/7)

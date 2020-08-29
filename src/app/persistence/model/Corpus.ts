@@ -1,24 +1,27 @@
 import {
-    Table,
-    Column,
-    Model,
-    HasMany,
-    PrimaryKey,
-    BelongsToMany,
     AllowNull,
+    AutoIncrement,
+    BelongsToMany,
+    Column,
     CreatedAt,
-    UpdatedAt, AutoIncrement
+    HasMany,
+    Model,
+    PrimaryKey,
+    Table,
+    UpdatedAt
 } from 'sequelize-typescript';
-import {AnnotationSet} from "./AnnotationSet";
 import {Document} from "./Document";
-import {CorpusToAnnotationSet} from "./CorpusToAnnotationSet";
 import {CorpusAttributes} from "@fhswf/tagflip-common";
 import {HasManyAddAssociationMixin, HasManyGetAssociationsMixin, HasManyRemoveAssociationMixin} from "sequelize";
-import {Annotation} from "./Annotation";
+import {AnnotationTask} from "./AnnotationTask";
+import {AnnotationSet} from "./AnnotationSet";
+import {CorpusAnnotationSets} from "./CorpusAnnotationSets";
 
-@Table({
-    tableName: "corpus"
-})
+@Table(
+    {
+        tableName: "Corpus"
+    }
+)
 export class Corpus extends Model<Corpus> implements CorpusAttributes{
 
     @PrimaryKey
@@ -33,11 +36,14 @@ export class Corpus extends Model<Corpus> implements CorpusAttributes{
     @Column
     description!: string;
 
-    @BelongsToMany(() => AnnotationSet, () => CorpusToAnnotationSet)
-    annotationSets!: AnnotationSet[];
-
     @HasMany(() => Document)
     documents!: Document[];
+
+    @BelongsToMany(() => AnnotationSet, () => CorpusAnnotationSets)
+    annotationSets!: AnnotationSet[];
+
+    @HasMany(() => AnnotationTask)
+    annotationTasks!: AnnotationTask[];
 
     @CreatedAt
     @Column
@@ -49,9 +55,9 @@ export class Corpus extends Model<Corpus> implements CorpusAttributes{
 
     public addAnnotationSet!: HasManyAddAssociationMixin<AnnotationSet, number>;
 
-    public getAnnotationSets!: HasManyGetAssociationsMixin<AnnotationSet>;
-
     public removeAnnotationSet!: HasManyRemoveAssociationMixin<AnnotationSet, number>;
+
+    public getAnnotationSets!: HasManyGetAssociationsMixin<AnnotationSet>;
 
     public addDocument!: HasManyAddAssociationMixin<Document, number>;
 

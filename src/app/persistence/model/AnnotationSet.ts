@@ -1,22 +1,23 @@
 import {
-    Table,
-    Column,
-    Model,
-    HasMany,
-    PrimaryKey,
     AllowNull,
+    AutoIncrement,
     BelongsToMany,
+    Column,
     CreatedAt,
-    UpdatedAt, AutoIncrement
+    HasMany,
+    Model,
+    PrimaryKey,
+    Table,
+    UpdatedAt
 } from 'sequelize-typescript';
-import {Corpus} from "./Corpus";
-import {CorpusToAnnotationSet} from "./CorpusToAnnotationSet";
 import {Annotation} from "./Annotation";
-import {HasManyAddAssociationMixin, HasManyGetAssociationsMixin} from "sequelize";
+import {HasManyGetAssociationsMixin} from "sequelize";
 import {AnnotationSetAttributes} from "@fhswf/tagflip-common";
+import {Corpus} from "./Corpus";
+import {CorpusAnnotationSets} from "./CorpusAnnotationSets";
 
 @Table({
-    tableName: "annotationset"
+    tableName: "AnnotationSet"
 })
 export class AnnotationSet extends Model<AnnotationSet> implements AnnotationSetAttributes{
 
@@ -35,8 +36,8 @@ export class AnnotationSet extends Model<AnnotationSet> implements AnnotationSet
     @HasMany(() => Annotation)
     annotations!: Annotation[];
 
-    @BelongsToMany(() => Corpus, () => CorpusToAnnotationSet)
-    corpus!: Corpus[];
+    @BelongsToMany(() => Corpus, () => CorpusAnnotationSets)
+    corpora!: Corpus[];
 
     @CreatedAt
     @Column

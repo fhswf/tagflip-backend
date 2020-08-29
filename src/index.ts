@@ -16,6 +16,8 @@ import {HttpError} from "typescript-rest/dist/server/model/errors";
 import {DocumentController} from "./app/controllers/DocumentController";
 import {TagController} from "./app/controllers/TagController";
 import {CorpusImportController} from './app/controllers/CorpusImportController';
+import {AnnotationTaskController} from "./app/controllers/AnnotationTaskController";
+import {AnnotationTaskDocumentController} from "./app/controllers/AnnotationTaskDocumentController";
 
 // configure cors
 const corsOptions: CorsOptions = {
@@ -60,8 +62,8 @@ class TagFlipServer {
         }
 
         Server.buildServices(this.app,
-            TestController, CorpusController, DocumentController, CorpusImportController,
-            AnnotationSetController, AnnotationController, TagController);
+            TestController, CorpusController, DocumentController, // CorpusImportController, todo: fix imports using AnnotationProjects
+            AnnotationSetController, AnnotationController, TagController, AnnotationTaskController, AnnotationTaskDocumentController);
         this.app.listen(config.serverPort, function () {
             console.log('Server listening on port ' + config.serverPort + '!');
         });

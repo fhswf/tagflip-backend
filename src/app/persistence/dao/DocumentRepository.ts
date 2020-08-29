@@ -23,10 +23,10 @@ export class DocumentRepository extends GenericRepository<Document> {
     }
 
     public async validate(entity: Document): Promise<void | never> {
-        let other = await this.repository.findOne({where: {documentHash: entity.documentHash}});
-        if(other && other.corpusId === entity.corpusId) {
-            throw new ValidationError(HttpStatus.UNPROCESSABLE_ENTITY, TagFlipErrorCode.CORPUS_DOCUMENT_SAME_CONTENT_FOUND, "Corpus already contains Document with same content as '" +entity.filename+ "'.");
-        }
+        // let other = await this.repository.findOne({where: {documentHash: entity.documentHash}});
+        // if(other && other.corpusId === entity.corpusId) {
+        //     throw new ValidationError(HttpStatus.UNPROCESSABLE_ENTITY, TagFlipErrorCode.CORPUS_DOCUMENT_SAME_CONTENT_FOUND, "Corpus already contains Document with same content as '" +entity.filename+ "'.");
+        // }
     }
 
 }

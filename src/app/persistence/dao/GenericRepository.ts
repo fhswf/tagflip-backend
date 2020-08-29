@@ -39,8 +39,8 @@ export abstract class GenericRepository<T extends Model<T>> {
         return entity !== null;
     }
 
-    public async list(): Promise<T[]> {
-        return this.repository.findAll();
+    public async list(options?: FindOptions): Promise<T[]> {
+        return this.repository.findAll(options);
     }
 
     public async getByName(name: string): Promise<T | null> {
@@ -51,10 +51,18 @@ export abstract class GenericRepository<T extends Model<T>> {
         return this.repository.count(options)
     }
 
+    public build(entity: T) {
+        return this.repository.build(entity)
+    }
+
+    public toPlain(entity: T) : T{
+        return entity.get({plain:true}) as T;
+    }
+
     public async save(entity: T, options?:InstanceUpdateOptions): Promise<T> {
         await this.validate(entity);
         if (this.isNew(this.getId(entity))) {
-            return this.repository.build(entity).save(options);
+            return this.build(entity).save(options);
         }
 
         let foundEntity = await this.read(this.getId(entity));
