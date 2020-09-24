@@ -1,3 +1,16 @@
+# [2.0.0](https://github.com/fhswf/tagflip-backend/compare/v1.4.0...v2.0.0) (2020-09-24)
+
+
+### Features
+
+* Support for Annotation Tasks ([3227f3b](https://github.com/fhswf/tagflip-backend/commit/3227f3b23668ff692e138f98e95b683c0c155f12))
+
+
+### BREAKING CHANGES
+
+* Release loses any compatibility to prior releases due
+to heavy changes on domain model.
+
 # [1.4.0](https://github.com/fhswf/tagflip-backend/compare/v1.3.1...v1.4.0) (2020-08-25)
 
 
