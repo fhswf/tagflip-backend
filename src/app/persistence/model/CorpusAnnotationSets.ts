@@ -1,11 +1,13 @@
-import {Table, Column, Model, HasMany, PrimaryKey, ForeignKey, CreatedAt, UpdatedAt} from 'sequelize-typescript';
-import {Corpus} from "./Corpus";
+import {Column, CreatedAt, ForeignKey, Model, Table, UpdatedAt} from 'sequelize-typescript';
 import {AnnotationSet} from "./AnnotationSet";
+import {Corpus} from "./Corpus";
 
-@Table({
-    tableName: "corpus_to_annotationset"
-})
-export class CorpusToAnnotationSet extends Model<CorpusToAnnotationSet> {
+@Table(
+    {
+        tableName: "CorpusAnnotationSets"
+    }
+)
+export class CorpusAnnotationSets extends Model<CorpusAnnotationSets> {
 
     @Column
     @ForeignKey(() => Corpus)

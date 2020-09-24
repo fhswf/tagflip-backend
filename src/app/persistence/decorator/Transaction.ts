@@ -12,6 +12,7 @@ export const BeginTransaction = <T>(
             if (namespace.get('transaction') !== t) {
                 throw Error("Transaction in namespace and current Transaction do not match!")
             }
+
             return method.apply(this, arguments);
         }).then(res => {
             console.log("Transaction committed.")

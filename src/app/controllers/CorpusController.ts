@@ -1,10 +1,11 @@
-import {DELETE, GET, Path, PathParam, POST, PUT} from "typescript-rest";
+import {DELETE, GET, Path, PathParam, POST, PUT, QueryParam} from "typescript-rest";
 import {Corpus} from "../persistence/model/Corpus";
 import {CorpusRepository} from "../persistence/dao/CorpusRepository";
 import {Inject} from "typescript-ioc";
-import {DocumentRepository} from "../persistence/dao/DocumentRepository";
-import {AnnotationSetRepository} from "../persistence/dao/AnnotationSetRepository";
+import SearchFilter, {ConvertSearchFilter, SearchFilterParam} from "./decorator/SearchFilter";
+import {Op, OrderItem} from "sequelize";
 import {AnnotationSet} from "../persistence/model/AnnotationSet";
+import {AnnotationSetRepository} from "../persistence/dao/AnnotationSetRepository";
 
 @Path("corpus")
 export class CorpusController {
@@ -15,12 +16,27 @@ export class CorpusController {
     @Inject
     private annotationSetRepository!: AnnotationSetRepository
 
-    @Inject
-    private documentRepository!: DocumentRepository
-
     @GET
-    public async list(): Promise<Corpus[]> {
-        return this.corpusRepository.list();
+    @ConvertSearchFilter
+    public async list(@QueryParam("count") count?: boolean,
+                      @QueryParam("offset") offset?: number,
+                      @QueryParam("limit")  limit?: number,
+                      @QueryParam("sortField")  sortField: string = "corpusId",
+                      @QueryParam("sortOrder")  sortOrder: string = "ASC",
+                      @QueryParam("searchFilter") @SearchFilterParam searchFilter?: SearchFilter[]): Promise<Corpus[] | number> {
+        if (count) {
+            if (searchFilter) {
+                return this.corpusRepository.count({where: {[Op.and]: [searchFilter.map(s => SearchFilter.toSequelize(s))]}})
+            }
+            return this.corpusRepository.count();
+        }
+
+        let options = {limit, offset, order: [[sortField, sortOrder] as OrderItem]}
+        if (searchFilter) {
+            Object.assign(options, {where: {[Op.and]: searchFilter.map(s => SearchFilter.toSequelize(s))}})
+        }
+
+        return this.corpusRepository.list(options);
     }
 
     @Path(":id")
@@ -31,7 +47,14 @@ export class CorpusController {
 
     @POST
     public async create(corpus: Corpus): Promise<Corpus> {
-        return this.corpusRepository.save(corpus);
+        let newCorpus = await this.corpusRepository.save(corpus);
+        if (corpus.annotationSets) {
+            for (const annotationSet of corpus.annotationSets) {
+                newCorpus.addAnnotationSet(this.annotationSetRepository.build(annotationSet))
+            }
+        }
+
+        return newCorpus;
     }
 
     @PUT

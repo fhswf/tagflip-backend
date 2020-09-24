@@ -13,6 +13,7 @@ import {Tag} from "./Tag";
 import {Corpus} from "./Corpus";
 import {DocumentAttributes} from "@fhswf/tagflip-common";
 import {BuildOptions, HasManyGetAssociationsMixin} from "sequelize";
+import {AnnotationTaskDocument} from "./AnnotationTaskDocument";
 
 @DefaultScope(() => ({
     attributes: ['documentId', 'corpusId', 'filename', 'documentHash', 'createdAt', 'updatedAt']
@@ -20,11 +21,14 @@ import {BuildOptions, HasManyGetAssociationsMixin} from "sequelize";
 @Scopes(() => ({
     full: {
         attributes: ['documentId', 'corpusId', 'filename', 'documentHash', 'content', 'createdAt', 'updatedAt'],
-    },
+        include: ['annotationTaskDocuments']
+    }
 }))
-@Table({
-    tableName: "document"
-})
+@Table(
+    {
+        tableName: "Document"
+    }
+)
 export class Document extends Model<Document> implements DocumentAttributes{
 
     @PrimaryKey
@@ -54,11 +58,14 @@ export class Document extends Model<Document> implements DocumentAttributes{
     @Column
     updatedAt!: Date
 
-    @HasMany(() => Tag)
-    tags!: Tag[];
-
     @BelongsTo(() => Corpus)
     corpus!: Corpus;
+
+    @HasMany(() => AnnotationTaskDocument)
+    annotationTaskDocuments!: AnnotationTaskDocument[];
+
+    @HasMany(() => Tag)
+    tags!: Tag[]
 
     public getTags!: HasManyGetAssociationsMixin<Tag>;
 

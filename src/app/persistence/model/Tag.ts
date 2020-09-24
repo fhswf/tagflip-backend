@@ -1,10 +1,21 @@
-import {AutoIncrement, Column, CreatedAt, ForeignKey, Model, PrimaryKey, Table, UpdatedAt} from "sequelize-typescript";
-import {Document} from "./Document";
+import {
+    AllowNull,
+    AutoIncrement,
+    Column,
+    CreatedAt,
+    ForeignKey,
+    Model,
+    PrimaryKey,
+    Table,
+    UpdatedAt
+} from "sequelize-typescript";
 import {TagAttributes} from "@fhswf/tagflip-common";
 import {Annotation} from "./Annotation";
+import {Document} from "./Document";
+import {AnnotationTask} from "./AnnotationTask";
 
 @Table({
-    tableName: "tag"
+    tableName:"Tag"
 })
 export class Tag extends Model<Tag> implements TagAttributes{
 
@@ -13,19 +24,24 @@ export class Tag extends Model<Tag> implements TagAttributes{
     @Column
     tagId!: number
 
+    @ForeignKey(() => Annotation)
     @Column
-    startIndex!: number;
-
-    @Column
-    endIndex!: number;
+    annotationId!: number;
 
     @ForeignKey(() => Document)
     @Column
     documentId!: number;
 
-    @ForeignKey(() => Annotation)
+    @ForeignKey(() => AnnotationTask)
+    @AllowNull
     @Column
-    annotationId!: number;
+    annotationTaskId!: number;
+
+    @Column
+    startIndex!: number;
+
+    @Column
+    endIndex!: number;
 
     @CreatedAt
     @Column
@@ -34,6 +50,5 @@ export class Tag extends Model<Tag> implements TagAttributes{
     @UpdatedAt
     @Column
     updatedAt!: Date
-
 
 }
