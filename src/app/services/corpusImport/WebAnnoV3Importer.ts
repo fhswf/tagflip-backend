@@ -3,12 +3,14 @@ import { createInterface } from "readline";
 import { Readable } from 'stream';
 import { CorpusImporter, Marker, Record, format } from './CorpusImporter';
 
-/** Import files in the NoSta-D format.
- * See {@link https://www.linguistik.hu-berlin.de/de/institut/professuren/korpuslinguistik/forschung/nosta-d}
+/** Import files in the WebAnnoV3 format.
+ * See {@link https://webanno.github.io/webanno/releases/3.0.0/docs/user-guide.html#sect_webannotsv}
  * for a description of the format.
  */
-@format(['NoStaD'])
-export class NoStaDImporter extends CorpusImporter {
+@format(['WebAnno V3'])
+export class WebAnnoV3Importer extends CorpusImporter {
+
+    VERSION_RE = new RegExp("\#FORMAT\=(WebAnno TSV .*)");
 
     constructor() {
         super()
@@ -25,7 +27,21 @@ export class NoStaDImporter extends CorpusImporter {
         let text = "";
         let lines: string[][] = [];
         let tags: Marker[] = [];
+        let lineNo = 0;
+
         for await (const line of input) {
+            lineNo++;
+            if (lineNo == 1) {
+                let matches = line.match(this.VERSION_RE);
+                if (!matches) {
+                    throw Error('not a WebAnno file');
+                }
+                else {
+                    console.log('matches: %o', matches);
+                }
+                continue;
+            }
+
             let fields = line.split('\t');
             if (fields[0].startsWith('#'))
                 continue;
@@ -48,7 +64,7 @@ export class NoStaDImporter extends CorpusImporter {
             }
         }
 
-        this.saveRecords(corpus, file, text, tags, annotationSetName, tagSet)
+        //this.saveRecords(file, text, tags, annotationSetName, tagSet)
     }
 
     createRecord(lines: string[][]): Record {
@@ -61,28 +77,11 @@ export class NoStaDImporter extends CorpusImporter {
 
         lines.forEach((fields, i) => {
             start[i] = text.length;
-            text += fields[1] + ' ';
+            text += fields[2] + ' ';
             end[i] = text.length - 1;
 
-            fields.slice(2).forEach((tag, j) => {
-                if (tag[0] != 'I') {
-                    // Is the a tag to end?
-                    let marker = current[j];
-                    if (marker != null) {
-                        marker.end = end[i - 1];
-                        annos.push(marker);
-                        current[j] = null;
-                    }
-                }
-                if (tag[0] == 'B') {
-                    // start new tag
-                    tagSet.add(tag.split('-')[1]);
-                    current[j] = {
-                        start: start[i],
-                        end: -1,
-                        name: tag.split('-')[1]
-                    };
-                }
+            fields[4].split('|').forEach((tag) => {
+                console.log("tags: %s", tag)
             });
         });
 

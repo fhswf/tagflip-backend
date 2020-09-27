@@ -2,7 +2,7 @@ import { FilesParam, FormParam, Path, POST } from "typescript-rest";
 import { Inject } from "typescript-ioc";
 import { Corpus } from '../persistence/model/Corpus';
 import { BadRequestError } from 'typescript-rest/dist/server/model/errors';
-import { CorpusImportService } from '../services/corpusImport/CorpusImportService';
+import CorpusImportService from '../services/corpusImport';
 import { AnnotationSetRepository } from '../persistence/dao/AnnotationSetRepository';
 
 
@@ -18,6 +18,7 @@ export class CorpusImportController {
     @POST
     public async import(
         @FormParam("name") name: string,
+        @FormParam("format") format: string,
         @FormParam("annotationSetName") annotationSetName: string,
         @FilesParam("files") files: Express.Multer.File[]): Promise<Corpus> {
         if (files.length == 0) {
@@ -30,6 +31,6 @@ export class CorpusImportController {
             throw new BadRequestError("no annotationSetName specified")
         }
 
-        return this.corpusImportService.import(name, annotationSetName, files);
+        return this.corpusImportService.import(name, format, annotationSetName, files);
     }
 }

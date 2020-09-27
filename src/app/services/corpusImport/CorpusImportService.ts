@@ -1,9 +1,8 @@
 import { Inject, Singleton } from "typescript-ioc";
 import { CorpusRepository } from "../../persistence/dao/CorpusRepository";
 import { Corpus } from '../../persistence/model/Corpus';
-import * as fs from "fs";
 import { InternalServerError } from 'typescript-rest/dist/server/model/errors';
-import { NoStaDImporter } from './NoStaDImporter';
+import { CorpusImporter } from './CorpusImporter';
 
 @Singleton
 export class CorpusImportService {
@@ -12,11 +11,11 @@ export class CorpusImportService {
     private corpusRepository!: CorpusRepository
 
 
-    public async import(name: string, annotationSetName: string, files: Express.Multer.File[]): Promise<Corpus> {
+    public async import(name: string, format: string, annotationSetName: string, files: Express.Multer.File[]): Promise<Corpus> {
         let corpus: Corpus = await this.corpusRepository.save({ name: name, description: "Imported Corpus" } as Corpus)
 
         /** @todo Chose importer by file type */
-        const importer = new NoStaDImporter(corpus)
+        const importer = CorpusImporter.forFormat(format)
         // import files as documents and tags
         try {
             files.forEach(async (file) => await importer.importFile(corpus, file, annotationSetName))
@@ -29,17 +28,3 @@ export class CorpusImportService {
         return this.corpusRepository.save(corpus)
     }
 }
-
-export interface Marker {
-    start: number
-    end: number
-    name: string
-}
-
-export interface Record {
-    text: string;
-    annotations: Marker[]
-    tagSet: Set<string>
-}
-
-
