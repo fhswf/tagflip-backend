@@ -1,23 +1,23 @@
 import * as express from "express";
-import {NextFunction} from "express";
+import { NextFunction } from "express";
 import * as cors from 'cors';
-import {CorsOptions} from 'cors';
+import { CorsOptions } from 'cors';
 import * as logger from 'morgan';
 import * as cookieParser from 'cookie-parser';
 import * as path from "path";
 
-import {Server} from "typescript-rest";
+import { Server } from "typescript-rest";
 import config from './app/Config'
-import {TestController} from "./app/controllers/TestController";
-import {CorpusController} from "./app/controllers/CorpusController";
-import {AnnotationSetController} from "./app/controllers/AnnotationSetController";
-import {AnnotationController} from "./app/controllers/AnnotationController";
-import {HttpError} from "typescript-rest/dist/server/model/errors";
-import {DocumentController} from "./app/controllers/DocumentController";
-import {TagController} from "./app/controllers/TagController";
-import {CorpusImportController} from './app/controllers/CorpusImportController';
-import {AnnotationTaskController} from "./app/controllers/AnnotationTaskController";
-import {AnnotationTaskDocumentController} from "./app/controllers/AnnotationTaskDocumentController";
+import { TestController } from "./app/controllers/TestController";
+import { CorpusController } from "./app/controllers/CorpusController";
+import { AnnotationSetController } from "./app/controllers/AnnotationSetController";
+import { AnnotationController } from "./app/controllers/AnnotationController";
+import { HttpError } from "typescript-rest/dist/server/model/errors";
+import { DocumentController } from "./app/controllers/DocumentController";
+import { TagController } from "./app/controllers/TagController";
+import { CorpusImportController } from './app/controllers/CorpusImportController';
+import { AnnotationTaskController } from "./app/controllers/AnnotationTaskController";
+import { AnnotationTaskDocumentController } from "./app/controllers/AnnotationTaskDocumentController";
 
 // configure cors
 const corsOptions: CorsOptions = {
@@ -62,7 +62,7 @@ class TagFlipServer {
         }
 
         Server.buildServices(this.app,
-            TestController, CorpusController, DocumentController, // CorpusImportController, todo: fix imports using AnnotationProjects
+            TestController, CorpusController, DocumentController, CorpusImportController, //todo: fix imports using AnnotationProjects
             AnnotationSetController, AnnotationController, TagController, AnnotationTaskController, AnnotationTaskDocumentController);
         this.app.listen(config.serverPort, function () {
             console.log('Server listening on port ' + config.serverPort + '!');

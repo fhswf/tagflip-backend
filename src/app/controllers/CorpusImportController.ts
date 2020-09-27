@@ -1,12 +1,12 @@
-import {FilesParam, FormParam, Path, POST} from "typescript-rest";
-import {Inject} from "typescript-ioc";
-import {Corpus} from '../persistence/model/Corpus';
-import {BadRequestError} from 'typescript-rest/dist/server/model/errors';
-import {CorpusImportService} from '../services/corpusImport/CorpusImportService';
-import {AnnotationSetRepository} from '../persistence/dao/AnnotationSetRepository';
+import { FilesParam, FormParam, Path, POST } from "typescript-rest";
+import { Inject } from "typescript-ioc";
+import { Corpus } from '../persistence/model/Corpus';
+import { BadRequestError } from 'typescript-rest/dist/server/model/errors';
+import { CorpusImportService } from '../services/corpusImport/CorpusImportService';
+import { AnnotationSetRepository } from '../persistence/dao/AnnotationSetRepository';
 
 
-@Path("corpus/import")
+@Path("/corpus/import")
 export class CorpusImportController {
 
     @Inject
