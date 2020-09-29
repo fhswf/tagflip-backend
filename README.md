@@ -1,4 +1,5 @@
 ![release](https://github.com/fhswf/tagflip-backend/workflows/release/badge.svg)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e40d7affed9a4d9785251ade673f5f0a)](https://app.codacy.com/gh/fhswf/tagflip-backend?utm_source=github.com&utm_medium=referral&utm_content=fhswf/tagflip-backend&utm_campaign=Badge_Grade)
 
 # Installation
 
@@ -62,5 +63,4 @@ location /tagflip/api/v1
 ```
 
 # Contributors
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e40d7affed9a4d9785251ade673f5f0a)](https://app.codacy.com/gh/fhswf/tagflip-backend?utm_source=github.com&utm_medium=referral&utm_content=fhswf/tagflip-backend&utm_campaign=Badge_Grade)
 [![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/0)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/0)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/1)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/1)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/2)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/2)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/3)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/3)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/4)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/4)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/5)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/5)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/6)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/6)[![](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/images/7)](https://sourcerer.io/fame/cgawron/fhswf/tagflip-backend/links/7)
