@@ -15,6 +15,9 @@ import { AnnotationRepository } from '../../persistence/dao/AnnotationRepository
 import { InternalServerError } from 'typescript-rest/dist/server/model/errors';
 import { Readable } from 'stream';
 
+/**
+ * @deprecated
+ */
 @Singleton
 export class CorpusImportService {
 
