@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/fhswf/tagflip-backend/compare/v2.0.0...v2.1.0) (2020-10-17)
+
+
+### Features
+
+* Import and Export of annotated Corpora with exemplary implementations for Brat-Standoff-Import and WebAnno TSV 3.2 Export. ([4924171](https://github.com/fhswf/tagflip-backend/commit/4924171ed6172398ee87b1d0b826a3ee163ed4c4))
+
 # [2.0.0](https://github.com/fhswf/tagflip-backend/compare/v1.4.0...v2.0.0) (2020-09-24)
 
 
