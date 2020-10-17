@@ -1,4 +1,5 @@
 ![release](https://github.com/fhswf/tagflip-backend/workflows/release/badge.svg)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e40d7affed9a4d9785251ade673f5f0a)](https://app.codacy.com/gh/fhswf/tagflip-backend?utm_source=github.com&utm_medium=referral&utm_content=fhswf/tagflip-backend&utm_campaign=Badge_Grade)
 
 # Installation
 
