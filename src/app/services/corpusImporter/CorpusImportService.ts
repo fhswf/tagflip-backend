@@ -5,6 +5,9 @@ import * as fs from "fs";
 import { InternalServerError } from 'typescript-rest/dist/server/model/errors';
 import { NoStaDImporter } from './NoStaDImporter';
 
+/**
+ * @deprecated
+ */
 @Singleton
 export class CorpusImportService {
 

@@ -1,6 +1,6 @@
 import {
     AllowNull,
-    AutoIncrement,
+    AutoIncrement, BelongsTo,
     Column,
     CreatedAt,
     ForeignKey,
@@ -50,5 +50,8 @@ export class Tag extends Model<Tag> implements TagAttributes{
     @UpdatedAt
     @Column
     updatedAt!: Date
+
+    @BelongsTo(() => Annotation)
+    annotation!: Annotation;
 
 }

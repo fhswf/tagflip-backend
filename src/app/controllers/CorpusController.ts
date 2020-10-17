@@ -1,4 +1,15 @@
-import {DELETE, GET, Path, PathParam, POST, PUT, QueryParam} from "typescript-rest";
+import {
+    DELETE,
+    FilesParam,
+    FormParam,
+    GET,
+    IgnoreNextMiddlewares,
+    Path,
+    PathParam,
+    POST,
+    PUT,
+    QueryParam, Return
+} from "typescript-rest";
 import {Corpus} from "../persistence/model/Corpus";
 import {CorpusRepository} from "../persistence/dao/CorpusRepository";
 import {Inject} from "typescript-ioc";
@@ -6,6 +17,13 @@ import SearchFilter, {ConvertSearchFilter, SearchFilterParam} from "./decorator/
 import {Op, OrderItem} from "sequelize";
 import {AnnotationSet} from "../persistence/model/AnnotationSet";
 import {AnnotationSetRepository} from "../persistence/dao/AnnotationSetRepository";
+import AbstractImporter from "../services/corpusImporter/importers";
+import {BeginTransaction} from "../persistence/decorator/Transaction";
+import {BadRequestError, NotFoundError} from "typescript-rest/dist/server/model/errors";
+import {AnnotatedCorpusImportService} from "../services/corpusImporter";
+import AbstractExporter from "../services/corpusExporter/exporters/AbstractExporter";
+import AnnotatedCorpusExportService from "../services/corpusExporter/AnnotatedCorpusExportService";
+import dateFormat = require("dateformat");
 
 @Path("corpus")
 export class CorpusController {
@@ -15,6 +33,57 @@ export class CorpusController {
 
     @Inject
     private annotationSetRepository!: AnnotationSetRepository
+
+    @Inject
+    private annotatedCorpusImportService!: AnnotatedCorpusImportService;
+
+    @Inject
+    private annotatedCorpusExportService!: AnnotatedCorpusExportService;
+
+    @Path("/import")
+    @GET
+    @IgnoreNextMiddlewares
+    public async importerTypes() : Promise<string[]> {
+        return AbstractImporter.getImporterNames();
+    }
+
+    @Path("/import")
+    @POST
+    @BeginTransaction
+    public async import(
+        @FormParam("importer") importer: string,
+        @FormParam("corpusName") corpusName: string,
+        @FormParam("annotationSetName") annotationSetName: string,
+        @FilesParam("files") files: Express.Multer.File[]): Promise<Corpus> {
+        if (!files || files.length == 0) {
+            throw new BadRequestError("no files were uploaded")
+        }
+        if (!corpusName) {
+            throw new BadRequestError("no Corpus name specified")
+        }
+        if (!annotationSetName) {
+            throw new BadRequestError("no Annotation Set name specified")
+        }
+        return await this.annotatedCorpusImportService.import(importer, corpusName, annotationSetName, files);
+    }
+
+    @Path("/export")
+    @GET
+    @IgnoreNextMiddlewares
+    public async exportTypes() : Promise<string[]> {
+        return AbstractExporter.getExporterNames();
+    }
+
+    @Path(":corpusId/export")
+    @GET
+    public async export(
+        @PathParam("corpusId") corpusId: number,
+        @QueryParam("exporterName") exporterName: string): Promise<Return.DownloadBinaryData> {
+        if(!exporterName)
+            throw new BadRequestError("Exporter is not defined.")
+        return new Return.DownloadBinaryData(await this.annotatedCorpusExportService.export(exporterName, corpusId),'application/zip',`export-corpus-${corpusId}_${dateFormat("yyyymmdd_HHMMss")}.zip`);
+    }
+
 
     @GET
     @ConvertSearchFilter
@@ -91,5 +160,7 @@ export class CorpusController {
         let annotationSet = await this.annotationSetRepository.read(annotationSetId);
         corpus.removeAnnotationSet(annotationSet)
     }
+
+
 
 }
