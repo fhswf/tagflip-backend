@@ -1,4 +1,5 @@
-#Importering BRAT Standoff Format
+# Importing BRAT Standoff Format
+
 BRAT Rapid Annotation Tool offers a quite complex file format for 
 their Annotation configuration and their Annotation data. Parsing this format
 "by hand" would be sort of ugly text surgery which has been prevented in this place.
