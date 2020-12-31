@@ -6,21 +6,21 @@ import * as _ from "lodash";
 import * as fs from "fs";
 import * as path from "path";
 import * as rimraf from "rimraf";
-import {AnnotationAttributes, TagAttributes} from "@fhswf/tagflip-common";
-import {Corpus} from "../../../persistence/model/Corpus";
-import {Document} from "../../../persistence/model/Document";
+import { AnnotationAttributes, TagAttributes } from "@fhswf/tagflip-common";
+import { Corpus } from "../../../persistence/model/Corpus";
+import { Document } from "../../../persistence/model/Document";
 import * as chroma from "chroma-js";
-import {Tag} from "../../../persistence/model/Tag";
-import {Inject} from "typescript-ioc";
-import {CorpusRepository} from "../../../persistence/dao/CorpusRepository";
-import {DocumentRepository} from "../../../persistence/dao/DocumentRepository";
-import {TagRepository} from "../../../persistence/dao/TagRepository";
-import {AnnotationRepository} from "../../../persistence/dao/AnnotationRepository";
-import {AnnotationSetRepository} from "../../../persistence/dao/AnnotationSetRepository";
-import {AnnotationSet} from "../../../persistence/model/AnnotationSet";
-import {Annotation} from "../../../persistence/model/Annotation";
+import { Tag } from "../../../persistence/model/Tag";
+import { Inject } from "typescript-ioc";
+import { CorpusRepository } from "../../../persistence/dao/CorpusRepository";
+import { DocumentRepository } from "../../../persistence/dao/DocumentRepository";
+import { TagRepository } from "../../../persistence/dao/TagRepository";
+import { AnnotationRepository } from "../../../persistence/dao/AnnotationRepository";
+import { AnnotationSetRepository } from "../../../persistence/dao/AnnotationSetRepository";
+import { AnnotationSet } from "../../../persistence/model/AnnotationSet";
+import { Annotation } from "../../../persistence/model/Annotation";
 import Hashing from "../../../util/Hashing";
-import {NotFoundError} from "typescript-rest/dist/server/model/errors";
+import { NotFoundError } from "typescript-rest/dist/server/model/errors";
 
 /**
  * Declares a type being an importer for an annotated Corpus.
@@ -134,7 +134,7 @@ export default abstract class AbstractImporter {
                 tmpFolders.push(tmpZipFolder)
                 console.log('Creating temporary directory: ', tmpZipFolder.name);
 
-                await readableBuffer.pipe(unzipper.Extract({path: tmpZipFolder.name})).promise();
+                await readableBuffer.pipe(unzipper.Extract({ path: tmpZipFolder.name })).promise();
 
                 const extractedFiles = await new Promise<string[]>((resolve, reject) => {
                     recursive(tmpZipFolder.name, [], (err, files) => {
@@ -172,7 +172,7 @@ export default abstract class AbstractImporter {
      * @param files the files that should be imported.
      * @return the imported documents.
      */
-    protected abstract async doImport(corpusName: string, annotationSetName: string, files: string[]): Promise<ImportDocument[]>
+    protected abstract doImport(corpusName: string, annotationSetName: string, files: string[]): Promise<ImportDocument[]>
 
     /**
      * This method persist the import results that have been produces by method doImport.
