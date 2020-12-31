@@ -9,7 +9,7 @@
         "host": "mysql",
         "dialect": "mysql",
         "password": "tagflip",
-        "user": "root"
+        "user": "tagflip"
     },
     "files": {
         "temp": "/opt/tagflip/temp"
