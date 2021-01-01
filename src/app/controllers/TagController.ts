@@ -33,7 +33,7 @@ export class TagController {
 
     @GET
     public async list(@PathParam("documentId") documentId: number, @QueryParam("annotationTaskId") annotationTaskId: number): Promise<Tag[]> {
-        let document: Document = await this.documentRepository.read(documentId);
+        const document: Document = await this.documentRepository.read(documentId);
         if (annotationTaskId) {
             return document.getTags({ where: { annotationTaskId } });
         }
@@ -43,7 +43,7 @@ export class TagController {
     @Path(":id")
     @GET
     public async read(@PathParam("documentId") documentId: number, @PathParam("id") tagId: number): Promise<Tag> {
-        let tag = await this.tagRepository.read(tagId);
+        const tag = await this.tagRepository.read(tagId);
         if (tag.documentId !== documentId) {
             throw new Errors.NotFoundError("Given document with ID " + documentId + " does not contain tag");
         }
@@ -69,12 +69,10 @@ export class TagController {
     @Path(":id")
     @DELETE
     public async delete(@PathParam("documentId") documentId: number, @PathParam("id") tagId: number): Promise<void> {
-        let tag = await this.tagRepository.read(tagId);
+        const tag = await this.tagRepository.read(tagId);
         if (tag.documentId !== documentId) {
             throw new Errors.NotFoundError("Given document with ID " + documentId + " does not contain tag");
         }
         await this.tagRepository.delete(tag.tagId);
     }
-
-
 }
