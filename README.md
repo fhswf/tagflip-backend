@@ -51,10 +51,9 @@ volumes:
 
 #### Set up a reverse proxy
 You probably want to route all external requests through a reverse proxy. This is our nginx config stanza:
-```
-location /tagflip/api/v1
+```nginx
+  location /tagflip/api/v1
 	{
-		#ssi on;
 		rewrite ^/tagflip/api/v1/(.*) /$1  break;
 		proxy_pass http://localhost:5000;
 		proxy_set_header Host $host;
