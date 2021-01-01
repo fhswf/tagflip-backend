@@ -41,7 +41,7 @@ export class IOBImporter extends AbstractImporter {
             const stream = fs.createReadStream(file)
             const input = createInterface({
                 crlfDelay: Infinity,
-                input: stream
+                input: stream,
             })
 
             let text = ""
@@ -73,7 +73,7 @@ export class IOBImporter extends AbstractImporter {
             const document: ImportDocument = {
                 content: text,
                 fileName: path.basename(file),
-                tags
+                tags,
             }
 
             console.info('%s import: %j', this.name, document)
@@ -121,7 +121,7 @@ export class IOBImporter extends AbstractImporter {
                     current[j] = {
                         annotation: { name: tag.split('-')[1] },
                         fromIndex: start[i],
-                        toIndex: -1
+                        toIndex: -1,
                     }
                 }
             })
