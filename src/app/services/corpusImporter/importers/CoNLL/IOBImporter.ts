@@ -33,7 +33,7 @@ export class IOBImporter extends AbstractImporter {
         const tagSet = new Set<string>()
         if (this.extensions) {
             const ext = this.extensions
-            files = _.filter(files, x => path.extname(x) in ext) || []
+            files = _.filter(files, (x) => path.extname(x) in ext) || []
         }
         const documents = []
         for (const file of files) {

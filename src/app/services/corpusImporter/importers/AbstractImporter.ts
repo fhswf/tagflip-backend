@@ -126,7 +126,7 @@ export default abstract class AbstractImporter {
         const tmpFolders = []
 
         try {
-            const [zipFiles, regularFiles] = _.partition(files, f => ["application/zip", "application/x-zip-compressed", "multipart/x-zip"].includes(f.mimetype))
+            const [zipFiles, regularFiles] = _.partition(files, (f) => ["application/zip", "application/x-zip-compressed", "multipart/x-zip"].includes(f.mimetype))
             for (const file of zipFiles) {
                 const readableBuffer = new streamBuffers.ReadableStreamBuffer();
                 readableBuffer.put(file.buffer)
@@ -159,7 +159,7 @@ export default abstract class AbstractImporter {
         } catch (e) {
             throw e;
         } finally {
-            tmpFolders.forEach(tmpFolder => {
+            tmpFolders.forEach((tmpFolder) => {
                 rimraf.sync(path.join(tmpFolder.name, "/*"))
                 tmpFolder.removeCallback()
                 console.log("Deleted temporary directory:", tmpFolder.name)

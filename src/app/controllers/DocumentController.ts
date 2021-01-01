@@ -38,7 +38,7 @@ export class DocumentController {
         if (count) {
             if (searchFilter) {
                 return this.documentRepository.count({
-                    where: { [Op.and]: [corpusId, searchFilter.map(s => SearchFilterImpl.toSequelize(s))] },
+                    where: { [Op.and]: [corpusId, searchFilter.map((s) => SearchFilterImpl.toSequelize(s))] },
                 })
             }
             return this.documentRepository.count({ where: { corpusId } });
@@ -47,7 +47,7 @@ export class DocumentController {
         const corpus = await this.corpusRepository.read(corpusId);
         const options = { limit, offset, order: [[sortField, sortOrder] as OrderItem] }
         if (searchFilter) {
-            Object.assign(options, { where: { [Op.and]: searchFilter.map(s => SearchFilterImpl.toSequelize(s)) } })
+            Object.assign(options, { where: { [Op.and]: searchFilter.map((s) => SearchFilterImpl.toSequelize(s)) } })
         }
 
         return corpus.getDocuments(options);
