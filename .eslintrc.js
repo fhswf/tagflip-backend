@@ -6,7 +6,7 @@ It represents the closest reasonable ESLint configuration to this
 project's original TSLint configuration.
 
 We recommend eventually switching this configuration to extend from
-the recommended rulesets in typescript-eslint. 
+the recommended rulesets in typescript-eslint.
 https://github.com/typescript-eslint/tslint-to-eslint-config/blob/master/docs/FAQs.md
 
 Happy linting! 💖
@@ -15,56 +15,56 @@ module.exports = {
     "env": {
         "browser": true,
         "es6": true,
-        "node": true
+        "node": true,
     },
     "extends": [
         "plugin:@typescript-eslint/recommended",
-        "plugin:@typescript-eslint/recommended-requiring-type-checking"
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "project": "tsconfig.json",
-        "sourceType": "module"
+        "sourceType": "module",
     },
     "plugins": [
         "eslint-plugin-import",
         "eslint-plugin-jsdoc",
         "eslint-plugin-prefer-arrow",
         "@typescript-eslint",
-        "@typescript-eslint/tslint"
+        "@typescript-eslint/tslint",
     ],
     "rules": {
         "@typescript-eslint/adjacent-overload-signatures": "error",
         "@typescript-eslint/array-type": [
             "error",
             {
-                "default": "array"
-            }
+                "default": "array",
+            },
         ],
         "@typescript-eslint/ban-types": [
             "error",
             {
                 "types": {
                     "Object": {
-                        "message": "Avoid using the `Object` type. Did you mean `object`?"
+                        "message": "Avoid using the `Object` type. Did you mean `object`?",
                     },
                     "Function": {
-                        "message": "Avoid using the `Function` type. Prefer a specific function type, like `() => void`."
+                        "message": "Avoid using the `Function` type. Prefer a specific function type, like `() => void`.",
                     },
                     "Boolean": {
-                        "message": "Avoid using the `Boolean` type. Did you mean `boolean`?"
+                        "message": "Avoid using the `Boolean` type. Did you mean `boolean`?",
                     },
                     "Number": {
-                        "message": "Avoid using the `Number` type. Did you mean `number`?"
+                        "message": "Avoid using the `Number` type. Did you mean `number`?",
                     },
                     "String": {
-                        "message": "Avoid using the `String` type. Did you mean `string`?"
+                        "message": "Avoid using the `String` type. Did you mean `string`?",
                     },
                     "Symbol": {
-                        "message": "Avoid using the `Symbol` type. Did you mean `symbol`?"
-                    }
-                }
-            }
+                        "message": "Avoid using the `Symbol` type. Did you mean `symbol`?",
+                    },
+                },
+            },
         ],
         "@typescript-eslint/consistent-type-assertions": "error",
         "@typescript-eslint/dot-notation": "error",
@@ -73,14 +73,41 @@ module.exports = {
             4,
             {
                 "FunctionDeclaration": {
-                    "parameters": "first"
+                    "parameters": "first",
                 },
                 "FunctionExpression": {
-                    "parameters": "first"
-                }
-            }
+                    "parameters": "first",
+                },
+            },
         ],
-        "@typescript-eslint/naming-convention": "error",
+        "@typescript-eslint/naming-convention": [
+            "error",
+            {
+                "selector": "default",
+                "format": ["camelCase"],
+            },
+
+            {
+                "selector": "variable",
+                "format": ["camelCase", "UPPER_CASE", "PascalCase"],
+            },
+            {
+                "selector": "parameter",
+                "format": ["camelCase"],
+                "leadingUnderscore": "allow",
+            },
+
+            {
+                "selector": "memberLike",
+                "modifiers": ["private"],
+                "format": ["camelCase", "PascalCase"],
+                "leadingUnderscore": "allow",
+            },
+            {
+                "selector": "typeLike",
+                "format": ["PascalCase"],
+            },
+        ],
         "@typescript-eslint/no-empty-function": "error",
         "@typescript-eslint/no-empty-interface": "error",
         "@typescript-eslint/no-explicit-any": "off",
@@ -99,27 +126,27 @@ module.exports = {
             {
                 "path": "always",
                 "types": "prefer-import",
-                "lib": "always"
-            }
+                "lib": "always",
+            },
         ],
         "@typescript-eslint/unified-signatures": "error",
         "arrow-parens": [
             "error",
-            "always"
+            "always",
         ],
         "comma-dangle": [
             "error",
             {
                 "objects": "always-multiline",
                 "arrays": "always-multiline",
-                "functions": "never"
-            }
+                "functions": "never",
+            },
         ],
         "complexity": "off",
         "constructor-super": "error",
         "eqeqeq": [
             "error",
-            "smart"
+            "smart",
         ],
         "guard-for-in": "error",
         "id-blacklist": [
@@ -132,7 +159,7 @@ module.exports = {
             "Boolean",
             "boolean",
             "Undefined",
-            "undefined"
+            "undefined",
         ],
         "id-match": "error",
         "import/order": "error",
@@ -141,7 +168,7 @@ module.exports = {
         "jsdoc/newline-after-description": "error",
         "max-classes-per-file": [
             "error",
-            1
+            1,
         ],
         "new-parens": "error",
         "no-bitwise": "error",
@@ -157,8 +184,8 @@ module.exports = {
         "no-shadow": [
             "error",
             {
-                "hoist": "all"
-            }
+                "hoist": "all",
+            },
         ],
         "no-throw-literal": "error",
         "no-trailing-spaces": "error",
@@ -170,7 +197,7 @@ module.exports = {
         "object-shorthand": "error",
         "one-var": [
             "error",
-            "never"
+            "never",
         ],
         "prefer-arrow/prefer-arrow-functions": "error",
         "prefer-const": "error",
@@ -180,9 +207,9 @@ module.exports = {
             "always",
             {
                 "markers": [
-                    "/"
-                ]
-            }
+                    "/",
+                ],
+            },
         ],
         "use-isnan": "error",
         "semi": "off",
@@ -191,9 +218,9 @@ module.exports = {
             "error",
             {
                 "rules": {
-                    "object-literal-sort-keys": true
-                }
-            }
-        ]
-    }
+                    "object-literal-sort-keys": true,
+                },
+            },
+        ],
+    },
 };

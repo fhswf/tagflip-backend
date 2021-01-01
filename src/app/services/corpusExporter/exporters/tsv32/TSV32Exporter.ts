@@ -1,23 +1,16 @@
-import AbstractExporter, {Exporter} from "../AbstractExporter";
-import {Inject} from "typescript-ioc";
-import {CorpusRepository} from "../../../../persistence/dao/CorpusRepository";
-import {DocumentRepository} from "../../../../persistence/dao/DocumentRepository";
-import {TagRepository} from "../../../../persistence/dao/TagRepository";
-import {AnnotationRepository} from "../../../../persistence/dao/AnnotationRepository";
-import {AnnotationSetRepository} from "../../../../persistence/dao/AnnotationSetRepository";
-import {Corpus} from "../../../../persistence/model/Corpus";
-import {Document} from "../../../../persistence/model/Document";
-import * as _ from "lodash"
-import {Tag} from "../../../../persistence/model/Tag";
-import {Tokenizer} from "natural";
+/* eslint-disable id-blacklist */
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable max-classes-per-file */
 import * as fs from "fs";
-import {tmpdir} from "tmp";
-import * as tmp from "tmp";
-import {PathLike} from "fs";
 import * as path from "path";
-import {BeginTransaction} from "../../../../persistence/decorator/Transaction";
+import { Inject } from "typescript-ioc";
+import * as _ from "lodash"
+import AbstractExporter, { Exporter } from "../AbstractExporter";
+import { CorpusRepository } from "../../../../persistence/dao/CorpusRepository";
+import { Corpus } from "../../../../persistence/model/Corpus";
+import { Document } from "../../../../persistence/model/Document";
+import { Tag } from "../../../../persistence/model/Tag";
 
-const natural = require("natural") // TODO: Replace with @types/natural once SentenceTokenizer is declared there
 
 class Sentence {
     private _tokens!: Token[]
@@ -41,7 +34,7 @@ class Token {
     private _string!: string
     private _tags!: TagSeries[];
 
-    constructor(startIndex: number = 0, theString: string = "", tags: TagSeries[] = []) {
+    constructor(startIndex = 0, theString = "", tags: TagSeries[] = []) {
         this._startIndex = startIndex;
         this._string = theString
         this._endIndex = startIndex + theString.length;
@@ -82,7 +75,7 @@ class Token {
     }
 
     get tags(): TagSeries[] {
-        return <TagSeries[]>this._tags;
+        return this._tags;
     }
 
     public appendTag(value: TagSeries) {
@@ -97,13 +90,13 @@ class Token {
 
 class TagSeries {
 
-    static INDEX_COUNTER: number = 1
+    static INDEX_COUNTER = 1
 
     private _tag!: Tag
     private _seriesLength!: number
     private _disambiguationID!: number
 
-    constructor(tag: Tag, disambiguationID: number, seriesLength: number = 0) {
+    constructor(tag: Tag, disambiguationID: number, seriesLength = 0) {
         this._tag = tag;
         this._seriesLength = seriesLength;
         this._disambiguationID = disambiguationID;
@@ -152,9 +145,9 @@ export class TSV32Exporter extends AbstractExporter {
     }
 
     protected async doExport(corpusId: number, targetFolder: string): Promise<any> {
-        let corpus: Corpus = await this.corpusRepository.read(corpusId);
-        const documents: Document[] = await corpus.getDocuments({scope: 'full'});
-        for (let document of documents) {
+        const corpus: Corpus = await this.corpusRepository.read(corpusId);
+        const documents: Document[] = await corpus.getDocuments({ scope: 'full' });
+        for (const document of documents) {
             fs.writeFileSync(path.join(targetFolder, document.filename + ".tsv"), await this.documentToTSV(document))
         }
     }
@@ -162,10 +155,10 @@ export class TSV32Exporter extends AbstractExporter {
     private tokenize(text: string): Sentence[] {
         let token: Token = new Token();
         let tokens: any[] = []
-        let state: State | undefined = undefined
+        let state: State | undefined
         let index = 0;
-        let sentences = []
-        for (let char of text) {
+        const sentences = []
+        for (const char of text) {
             if (/\w/.test(char)) {
                 if (state !== State.WORD) {
                     if (token.hasText()) {
@@ -207,18 +200,18 @@ export class TSV32Exporter extends AbstractExporter {
     }
 
     private tokenToTSV(sentenceNumber: number, tokenNumber: number, token: Token, subtokenNumber?: number): string {
-        let line = []
+        const line = []
         if (!subtokenNumber)
-            line.push(sentenceNumber + "-" + tokenNumber)
+            line.push(`{sentenceNumber}-{tokenNumber}`)
         else
-            line.push(sentenceNumber + "-" + tokenNumber + "." + subtokenNumber)
-        line.push(token.startIndex + "-" + (token.endIndex))
+            line.push(`{sentenceNumber}-{tokenNumber}.{subtokenNumber}`)
+        line.push(`{token.startIndex}-{token.endIndex}`)
         line.push(token.string)
 
-        let coveringTags = []
-        let subTokenTags = []
+        const coveringTags = []
+        const subTokenTags = []
         // determine whether tags apply to the whole token (coveringTags) or to a substring of the token (subTokenTags)
-        for (let tagSeries of token.tags) {
+        for (const tagSeries of token.tags) {
             if (tagSeries.tag.startIndex > token.startIndex || tagSeries.tag.endIndex < token.endIndex) {
                 subTokenTags.push(tagSeries)
             } else {
@@ -228,12 +221,12 @@ export class TSV32Exporter extends AbstractExporter {
 
         // coveringTags can be handled immediately ...
         // let asteriskLine = []
-        let tagLine = []
+        const tagLine = []
         if (coveringTags.length === 0) {
             // asteriskLine.push("_")
             tagLine.push("_")
         } else {
-            for (let tag of coveringTags) {
+            for (const tag of coveringTags) {
                 if (tag.seriesLength === 1) {
                     // asteriskLine.push("*")
                     tagLine.push(tag.tag.annotation.name)
@@ -247,17 +240,17 @@ export class TSV32Exporter extends AbstractExporter {
 
         // line.push(asteriskLine.join("|"))
         line.push(tagLine.join("|"))
-        let lines = [line.join("\t")]
+        const lines = [line.join("\t")]
 
         // subtokenTags must be handled separately. This can be done recursively once tags are mapped to subtokens properly
         if (!subtokenNumber) {
-            //apply tags to corresponding subTokens
+            // apply tags to corresponding subTokens
             const subtokens = new Map<string, Token>();
-            for (let subTokenTag of subTokenTags) {
+            for (const subTokenTag of subTokenTags) {
                 if (!subtokens.has(subTokenTag.tag.startIndex + ":" + subTokenTag.tag.endIndex)) {
                     // subtoken is unknown... make it known since one subtoken can have multiple tags
-                    let startIndex = subTokenTag.tag.startIndex <= token.startIndex ? token.startIndex : subTokenTag.tag.startIndex // startIndex in prev token or here?
-                    let subToken = new Token(startIndex, token.string.substr(startIndex - token.startIndex, subTokenTag.tag.endIndex - startIndex)) // slice substring
+                    const startIndex = subTokenTag.tag.startIndex <= token.startIndex ? token.startIndex : subTokenTag.tag.startIndex // startIndex in prev token or here?
+                    const subToken = new Token(startIndex, token.string.substr(startIndex - token.startIndex, subTokenTag.tag.endIndex - startIndex)) // slice substring
                     subtokens.set(subTokenTag.tag.startIndex + ":" + subTokenTag.tag.endIndex, subToken);
                 }
                 // here we can be sure, that subtoken for subTokenTag.tag.startIndex+":"+subTokenTag.tag.endIndex exists
@@ -266,7 +259,7 @@ export class TSV32Exporter extends AbstractExporter {
             }
             // handle subtokens as they were regular tokens by recursively calling the method again
             let subtokenNumber = 1;
-            for (let subtoken of _.sortBy([...subtokens.values()], ["startIndex"])) {
+            for (const subtoken of _.sortBy([...subtokens.values()], ["startIndex"])) {
                 lines.push(this.tokenToTSV(sentenceNumber, tokenNumber, subtoken, subtokenNumber++));
             }
         }
@@ -275,12 +268,12 @@ export class TSV32Exporter extends AbstractExporter {
     }
 
     private tokensToSentenceString(tokens: Token[]): string {
-        let line = ["#Text="]
+        const line = ["#Text="]
         if (tokens.length === 0)
             return line.join("");
 
         let index = tokens[0].startIndex;
-        for (let token of tokens) {
+        for (const token of tokens) {
             while (index < token.startIndex) {
                 line.push(" ");
                 index++;
@@ -294,18 +287,18 @@ export class TSV32Exporter extends AbstractExporter {
     }
 
     private sentencesToTSV(sentences: Sentence[]): string {
-        let lines = [];
+        const lines = [];
         lines.push("#FORMAT=WebAnno TSV 3.2")
         lines.push("#T_SP=webanno.custom.TagFlip|value")
         lines.push("")
         lines.push("")
 
         let sentenceNumber = 1;
-        for (let sentence of sentences) {
+        for (const sentence of sentences) {
             if (sentence.tokens.length > 0) {
                 let tokenNumber = 1
                 lines.push(this.tokensToSentenceString(sentence.tokens))
-                for (let token of sentence.tokens) {
+                for (const token of sentence.tokens) {
                     lines.push(this.tokenToTSV(sentenceNumber, tokenNumber++, token))
                 }
                 lines.push("")
@@ -318,27 +311,27 @@ export class TSV32Exporter extends AbstractExporter {
 
     private async documentToTSV(document: Document): Promise<string> {
         let text = document.content || "";
-        let tags = _.sortBy(await document.getTags({include: ['annotation']}), t => t.startIndex);
+        let tags = _.sortBy(await document.getTags({ include: ['annotation'] }), (t) => t.startIndex);
 
         text = text.replace(/\r\n/g, "\n") // Windows... any other solution?
 
-        let sentences = this.tokenize(text);
+        const sentences = this.tokenize(text);
 
         // map tags to tokens and determine length of tag - chains
         let activeTags: TagSeries[] = []
         let disambiguationId = 1;
-        for (let sentence of sentences) {
+        for (const sentence of sentences) {
             // find out which tags are relevant to current token (or at least relevant to substring of the token)
-            for (let token of sentence.tokens) {
+            for (const token of sentence.tokens) {
                 // remove old... Note: tag/token.endIndex is exclusive
-                activeTags = _.filter(activeTags, t => t.tag.endIndex >= token.endIndex || (t.tag.endIndex > token.startIndex && t.tag.endIndex <= token.endIndex));
+                activeTags = _.filter(activeTags, (t) => t.tag.endIndex >= token.endIndex || (t.tag.endIndex > token.startIndex && t.tag.endIndex <= token.endIndex));
 
                 // reduce tags to future relevant
-                tags = _.filter(tags, t => t.startIndex >= token.startIndex) // TODO: performance could be improved using binary search via startIndex.. lodash does not provide a function for that -> filter for now. write custom binary search
+                tags = _.filter(tags, (t) => t.startIndex >= token.startIndex) // TODO: performance could be improved using binary search via startIndex.. lodash does not provide a function for that -> filter for now. write custom binary search
                 // accept new tags
-                activeTags.push(..._.filter(tags, t => t.startIndex >= token.startIndex && t.startIndex < token.endIndex).map(t => new TagSeries(t, disambiguationId++))); // Note: binary search might not be useful here since ordering is either done via startIndex xor via endIndex -> therefore only filter.
+                activeTags.push(..._.filter(tags, (t) => t.startIndex >= token.startIndex && t.startIndex < token.endIndex).map((t) => new TagSeries(t, disambiguationId++))); // Note: binary search might not be useful here since ordering is either done via startIndex xor via endIndex -> therefore only filter.
                 // apply tags current to token
-                activeTags.forEach(t => t.seriesLength++) // update "length" of tags with respect to tokens - Note: this gives the information about tags which span across more than one token.
+                activeTags.forEach((t) => t.seriesLength++) // update "length" of tags with respect to tokens - Note: this gives the information about tags which span across more than one token.
                 token.appendTags(activeTags);
             }
         }
