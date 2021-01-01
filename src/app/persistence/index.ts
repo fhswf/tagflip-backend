@@ -10,7 +10,7 @@ import { Sequelize as OriginSequelize } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 OriginSequelize.useCLS(namespace);
 
-console.log("Adding models from path: " + path.join(__dirname, 'model'))
+console.log("Adding models from path: " + path.join(__dirname, "model"))
 const sequelize = new Sequelize({
         database: config.db.name,
         dialect: config.db.dialect,
@@ -18,7 +18,7 @@ const sequelize = new Sequelize({
         models: [path.join(__dirname, 'model')],
         password: config.db.password,
         port: config.db.port, repositoryMode: true,
-        username: config.db.user
+        username: config.db.user,
 });
 
 
