@@ -1,39 +1,40 @@
+import * as cookieParser from "cookie-parser";
+import * as cors from "cors";
+import { CorsOptions } from "cors";
 import * as express from "express";
-import {NextFunction} from "express";
-import * as cors from 'cors';
-import {CorsOptions} from 'cors';
-import * as logger from 'morgan';
-import * as cookieParser from 'cookie-parser';
+import { NextFunction } from "express";
+import * as logger from "morgan";
 import * as path from "path";
+import { Server } from "typescript-rest";
 
-import {Server} from "typescript-rest";
 import config from './app/Config'
-import {TestController} from "./app/controllers/TestController";
-import {CorpusController} from "./app/controllers/CorpusController";
-import {AnnotationSetController} from "./app/controllers/AnnotationSetController";
-import {AnnotationController} from "./app/controllers/AnnotationController";
-import {HttpError} from "typescript-rest/dist/server/model/errors";
-import {DocumentController} from "./app/controllers/DocumentController";
-import {TagController} from "./app/controllers/TagController";
-import {AnnotationTaskController} from "./app/controllers/AnnotationTaskController";
-import {AnnotationTaskDocumentController} from "./app/controllers/AnnotationTaskDocumentController";
+import { AnnotationController } from "./app/controllers/AnnotationController";
+import { AnnotationSetController } from "./app/controllers/AnnotationSetController";
+import { AnnotationTaskController } from "./app/controllers/AnnotationTaskController";
+import { AnnotationTaskDocumentController } from "./app/controllers/AnnotationTaskDocumentController";
+import { CorpusController } from "./app/controllers/CorpusController";
+import { DocumentController } from "./app/controllers/DocumentController";
+import { TagController } from "./app/controllers/TagController";
+import { TestController } from "./app/controllers/TestController";
+
+import { HttpError } from "typescript-rest/dist/server/model/errors";
 
 // configure cors
 const corsOptions: CorsOptions = {
-    origin: function (origin, callback) {
+    credentials: true,
+    exposedHeaders: ['Content-Disposition'],
+    origin: (origin, callback) => {
         if (!origin || config.allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true)
         } else {
             callback(new Error(`Origin ${origin} not allowed by CORS`))
         }
     },
-    exposedHeaders: ['Content-Disposition'],
-    credentials: true
 };
 
 const errorMiddleware = (error: HttpError, request: express.Request, response: express.Response, next: NextFunction) => {
-    let message = error.message;
-    let statusCode = error.statusCode || 500;
+    const message = error.message;
+    const statusCode = error.statusCode || 500;
     console.error(error);
     response.status(statusCode).send(Object.assign({}, error, { message }))
 }
@@ -64,8 +65,8 @@ class TagFlipServer {
         Server.buildServices(this.app,
             TestController, CorpusController, DocumentController,
             AnnotationSetController, AnnotationController, TagController, AnnotationTaskController, AnnotationTaskDocumentController);
-        this.app.listen(config.serverPort, function () {
-            console.log('Server listening on port ' + config.serverPort + '!');
+        this.app.listen(config.serverPort, () => {
+            console.log("Server listening on port " + config.serverPort + "!");
         });
 
         // error handler
