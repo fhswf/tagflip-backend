@@ -1,3 +1,11 @@
+# [2.2.0](https://github.com/fhswf/tagflip-backend/compare/v2.1.0...v2.2.0) (2020-12-31)
+
+
+### Features
+
+* Importer for CoNLL 2003 (NER) files ([bf70dc7](https://github.com/fhswf/tagflip-backend/commit/bf70dc7dda938dcb356cc63161a3d801b5427706))
+* importer for tsv ([e9baeed](https://github.com/fhswf/tagflip-backend/commit/e9baeed176f9e64d95c143b39f7fe30820bad4f7))
+
 # [2.1.0](https://github.com/fhswf/tagflip-backend/compare/v2.0.0...v2.1.0) (2020-10-17)
 
 
