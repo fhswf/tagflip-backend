@@ -14,10 +14,6 @@ import { IOBImporter } from "./IOBImporter"
  */
 @Importer("GermEval2014 (NER)")
 export class GermEval2014Importer extends IOBImporter {
-
-    static EXT = [".tsv"]
-
-    constructor() {
         super(/\t/, 1, [2, 3], undefined, "GermEval2014 (NER)")
     }
 }

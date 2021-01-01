@@ -15,7 +15,7 @@ services:
       - mysql
 
   mysql:
-    container_name: mysql
+    container_name: mysql_tagflip
     image: mysql
     command: --default-authentication-plugin=mysql_native_password
     env_file:
