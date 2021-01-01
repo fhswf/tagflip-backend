@@ -5,7 +5,7 @@ TSV-files (whe you know what you are doing) or in WebAnno itself.
 
 WebAnno's TSV 3.2 files require some declaration to be done in the head section of 
 a TSV file.  On default the exporter declares the header as follows:
-```
+```text
 #FORMAT=WebAnno TSV 3.2
 #T_SP=webanno.custom.TagFlip|value
 ```

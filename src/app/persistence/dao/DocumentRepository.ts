@@ -1,11 +1,8 @@
-import {Singleton} from "typescript-ioc";
+import { Identifier } from "sequelize";
+import { Singleton } from "typescript-ioc";
 import "../index";
-import {GenericRepository} from "./GenericRepository";
-import {Identifier} from "sequelize";
-import {Document} from "../model/Document";
-import {ValidationError} from "../../exception/ValidationError";
-import * as HttpStatus from "http-status-codes";
-import {TagFlipErrorCode} from "@fhswf/tagflip-common";
+import { Document } from "../model/Document";
+import { GenericRepository } from "./GenericRepository";
 
 @Singleton
 export class DocumentRepository extends GenericRepository<Document> {
