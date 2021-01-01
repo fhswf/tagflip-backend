@@ -95,8 +95,9 @@ export default abstract class AbstractImporter {
     public static register(name: string, importer: AbstractImporter) {
         if (AbstractImporter.importers.has(name)) {
             const knownImporter = AbstractImporter.importers.get(name);
-            if (knownImporter)
+            if (knownImporter) {
                 throw new NotFoundError("Importer with name " + name + " is already known: " + knownImporter.constructor);
+            }
         }
         AbstractImporter.importers.set(name, importer);
     }

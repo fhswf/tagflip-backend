@@ -1,19 +1,19 @@
-import {DELETE, GET, IgnoreNextMiddlewares, Path, PathParam, POST, PUT, QueryParam} from "typescript-rest";
-import {Inject} from "typescript-ioc";
-import {AnnotationTaskRepository} from "../persistence/dao/AnnotationTaskRepository";
-import {AnnotationTask} from "../persistence/model/AnnotationTask";
-import {CorpusRepository} from "../persistence/dao/CorpusRepository";
-import {Corpus} from "../persistence/model/Corpus";
-import {v4 as uuidv4} from 'uuid';
-import {BeginTransaction} from "../persistence/decorator/Transaction";
+import { DELETE, GET, IgnoreNextMiddlewares, Path, PathParam, POST, PUT, QueryParam } from "typescript-rest";
+import { Inject } from "typescript-ioc";
+import { AnnotationTaskRepository } from "../persistence/dao/AnnotationTaskRepository";
+import { AnnotationTask } from "../persistence/model/AnnotationTask";
+import { CorpusRepository } from "../persistence/dao/CorpusRepository";
+import { Corpus } from "../persistence/model/Corpus";
+import { v4 as uuidv4 } from 'uuid';
+import { BeginTransaction } from "../persistence/decorator/Transaction";
 import * as short from "short-uuid";
-import {AnnotationTaskDocumentRepository} from "../persistence/dao/AnnotationTaskDocumentRepository";
-import {AnnotationTaskDocument} from "../persistence/model/AnnotationTaskDocument";
-import {AnnotationTaskAttributes, AnnotationTaskMeta, DocumentAnnotationState, Meta} from "@fhswf/tagflip-common";
-import {AnnotationTaskState} from "../persistence/model/AnnotationTaskState";
-import {AnnotationTaskStateRepository} from "../persistence/dao/AnnotationTaskStateRepository";
+import { AnnotationTaskDocumentRepository } from "../persistence/dao/AnnotationTaskDocumentRepository";
+import { AnnotationTaskDocument } from "../persistence/model/AnnotationTaskDocument";
+import { AnnotationTaskMeta, DocumentAnnotationState, Meta } from "@fhswf/tagflip-common";
+import { AnnotationTaskState } from "../persistence/model/AnnotationTaskState";
+import { AnnotationTaskStateRepository } from "../persistence/dao/AnnotationTaskStateRepository";
 import * as _ from "lodash";
-import {Op} from "sequelize";
+import { Op } from "sequelize";
 
 @Path("annotationtask")
 export class AnnotationTaskController {
@@ -35,8 +35,8 @@ export class AnnotationTaskController {
     @BeginTransaction
     @IgnoreNextMiddlewares
     public async generate(@PathParam("corpusId") corpusId: number,
-                          @PathParam("partitions") partitions: number,
-                          @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask[] | (AnnotationTask & Meta<AnnotationTaskMeta>)[]> {
+        @PathParam("partitions") partitions: number,
+        @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask[] | (AnnotationTask & Meta<AnnotationTaskMeta>)[]> {
         const corpus: Corpus = await this.corpusRepository.read(corpusId);
         const documents = await corpus.getDocuments();
 
@@ -48,7 +48,7 @@ export class AnnotationTaskController {
         const annotationTaskStateIdOpen = (await this.annotationTaskStateRepository.getByName("open")).annotationTaskStateId
         const uuid = uuidv4();
         const shortUuid = short().fromUUID(uuid)
-        const latestCount = await this.annotationTaskRepository.count({where: {"annotationTaskStateId": annotationTaskStateIdOpen}});
+        const latestCount = await this.annotationTaskRepository.count({ where: { "annotationTaskStateId": annotationTaskStateIdOpen } });
         for (let partitionIndex in documentPartitions) {
             let partition = documentPartitions[partitionIndex];
             let partitionNumber = Number.parseInt(partitionIndex) + 1;
@@ -101,14 +101,14 @@ export class AnnotationTaskController {
         let annotationTaskState: AnnotationTaskState;
         if (state) {
             annotationTaskState = await this.annotationTaskStateRepository.getByName(state);
-            Object.assign(where, {where: {annotationTaskStateId: annotationTaskState.annotationTaskStateId}})
+            Object.assign(where, { where: { annotationTaskStateId: annotationTaskState.annotationTaskStateId } })
         } else {
             // determine visible states
-            let visibleStates : AnnotationTaskState[] = await this.annotationTaskStateRepository.list({where: {visible:true}});
-            Object.assign(where, {where: {annotationTaskStateId: {[Op.in]: visibleStates.map(s => s.annotationTaskStateId)}}})
+            let visibleStates: AnnotationTaskState[] = await this.annotationTaskStateRepository.list({ where: { visible: true } });
+            Object.assign(where, { where: { annotationTaskStateId: { [Op.in]: visibleStates.map(s => s.annotationTaskStateId) } } })
         }
 
-        let annotationTasks = await this.annotationTaskRepository.list({include: ['corpus'], ...where});
+        let annotationTasks = await this.annotationTaskRepository.list({ include: ['corpus'], ...where });
         if (!withMeta)
             return annotationTasks;
 
@@ -116,7 +116,7 @@ export class AnnotationTaskController {
         let annotationTaskResult = []
         for (let annotationTask of annotationTasks) {
             let annotationTaskPure = this.annotationTaskRepository.toPlain(annotationTask);
-            Object.assign(annotationTaskPure, {meta: await this.annotationTaskDocumentRepository.getAnnotationTaskMeta(annotationTask.annotationTaskId)})
+            Object.assign(annotationTaskPure, { meta: await this.annotationTaskDocumentRepository.getAnnotationTaskMeta(annotationTask.annotationTaskId) })
             annotationTaskResult.push(annotationTaskPure)
         }
         return annotationTaskResult;
@@ -125,11 +125,11 @@ export class AnnotationTaskController {
 
     @Path(":id")
     @GET
-    public async read(@PathParam("id") annotationTaskId: number, @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask> {
-        let annotationTask = await this.annotationTaskRepository.read(annotationTaskId, 'defaultScope', {include: ['corpus']});
+    public async read(@PathParam("id") annotationTaskId: number): Promise<AnnotationTask> {
+        let annotationTask = await this.annotationTaskRepository.read(annotationTaskId, 'defaultScope', { include: ['corpus'] });
         let annotationTaskMeta = await this.annotationTaskDocumentRepository.getAnnotationTaskMeta(annotationTaskId)
         let annotationTaskPure = this.annotationTaskRepository.toPlain(annotationTask);
-        Object.assign(annotationTaskPure, {meta: annotationTaskMeta})
+        Object.assign(annotationTaskPure, { meta: annotationTaskMeta })
         return annotationTaskPure;
     }
 
