@@ -2,7 +2,6 @@ import * as cookieParser from "cookie-parser";
 import * as cors from "cors";
 import { CorsOptions } from "cors";
 import * as express from "express";
-import { NextFunction } from "express";
 import * as logger from "morgan";
 import * as path from "path";
 import { Server } from "typescript-rest";
@@ -17,7 +16,9 @@ import { DocumentController } from "./app/controllers/DocumentController";
 import { TagController } from "./app/controllers/TagController";
 import { TestController } from "./app/controllers/TestController";
 
+import { StatusCodes } from "http-status-codes";
 import { HttpError } from "typescript-rest/dist/server/model/errors";
+
 
 // configure cors
 const corsOptions: CorsOptions = {
@@ -32,9 +33,9 @@ const corsOptions: CorsOptions = {
     },
 };
 
-const errorMiddleware = (error: HttpError, request: express.Request, response: express.Response, next: NextFunction) => {
+const errorMiddleware = (error: HttpError, request: express.Request, response: express.Response) => {
     const message = error.message;
-    const statusCode = error.statusCode || 500;
+    const statusCode = error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
     console.error(error);
     response.status(statusCode).send(Object.assign({}, error, { message }))
 }

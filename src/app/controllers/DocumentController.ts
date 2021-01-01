@@ -31,8 +31,8 @@ export class DocumentController {
         @QueryParam("count") count?: boolean,
         @QueryParam("offset") offset?: number,
         @QueryParam("limit") limit?: number,
-        @QueryParam("sortField") sortField: string = "documentId",
-        @QueryParam("sortOrder") sortOrder: string = "ASC",
+        @QueryParam("sortField") sortField = "documentId",
+        @QueryParam("sortOrder") sortOrder = "ASC",
         @QueryParam("searchFilter") @SearchFilterParam searchFilter?: SearchFilter[]
     ): Promise<Document[] | number> {
         if (count) {
