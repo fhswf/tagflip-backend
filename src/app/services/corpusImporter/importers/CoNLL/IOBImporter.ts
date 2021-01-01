@@ -1,9 +1,9 @@
 import AbstractImporter, { ImportAnnotation, ImportDocument, Importer, ImportTag } from "../AbstractImporter";
-import { createInterface } from "readline";
-import * as path from "path";
+
 import * as fs from "fs";
 import * as _ from "lodash"
-import { Annotation } from 'src/app/persistence/model/Annotation';
+import * as path from "path";
+import { createInterface } from "readline";
 
 interface Record {
     text: string;
@@ -40,8 +40,8 @@ export class IOBImporter extends AbstractImporter {
             console.log('%s: Importing %s', this.name, file)
             const stream = fs.createReadStream(file)
             const input = createInterface({
-                input: stream,
-                crlfDelay: Infinity
+                crlfDelay: Infinity,
+                input: stream
             })
 
             let text = ""
@@ -71,9 +71,9 @@ export class IOBImporter extends AbstractImporter {
             }
 
             const document: ImportDocument = {
-                tags,
+                content: text,
                 fileName: path.basename(file),
-                content: text
+                tags
             }
 
             console.info('%s import: %j', this.name, document)
@@ -110,18 +110,18 @@ export class IOBImporter extends AbstractImporter {
                     // start new tag
                     tagSet.add(tag.split('-')[1])
                     current[j] = {
+                        annotation: { name: tag.split('-')[1] },
                         fromIndex: start[i],
                         toIndex: -1,
-                        annotation: { name: tag.split('-')[1] }
                     }
                 }
                 else if (tag[0] === 'I' && current[j] == null) {
                     // start new tag, even if it starts with I-(NER type)
                     tagSet.add(tag.split('-')[1])
                     current[j] = {
+                        annotation: { name: tag.split('-')[1] },
                         fromIndex: start[i],
-                        toIndex: -1,
-                        annotation: { name: tag.split('-')[1] }
+                        toIndex: -1
                     }
                 }
             })

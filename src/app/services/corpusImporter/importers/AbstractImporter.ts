@@ -1,25 +1,27 @@
+import * as chroma from "chroma-js";
+import * as fs from "fs";
+import * as _ from "lodash";
+import * as path from "path";
+import * as recursive from "recursive-readdir";
+import * as rimraf from "rimraf";
 import * as streamBuffers from "stream-buffers";
 import * as tmp from "tmp";
 import * as unzipper from "unzipper";
-import * as recursive from "recursive-readdir";
-import * as _ from "lodash";
-import * as fs from "fs";
-import * as path from "path";
-import * as rimraf from "rimraf";
+
 import { AnnotationAttributes, TagAttributes } from "@fhswf/tagflip-common";
-import { Corpus } from "../../../persistence/model/Corpus";
-import { Document } from "../../../persistence/model/Document";
-import * as chroma from "chroma-js";
-import { Tag } from "../../../persistence/model/Tag";
-import { Inject } from "typescript-ioc";
+import { AnnotationRepository } from "../../../persistence/dao/AnnotationRepository";
+import { AnnotationSetRepository } from "../../../persistence/dao/AnnotationSetRepository";
 import { CorpusRepository } from "../../../persistence/dao/CorpusRepository";
 import { DocumentRepository } from "../../../persistence/dao/DocumentRepository";
 import { TagRepository } from "../../../persistence/dao/TagRepository";
-import { AnnotationRepository } from "../../../persistence/dao/AnnotationRepository";
-import { AnnotationSetRepository } from "../../../persistence/dao/AnnotationSetRepository";
-import { AnnotationSet } from "../../../persistence/model/AnnotationSet";
 import { Annotation } from "../../../persistence/model/Annotation";
+import { AnnotationSet } from "../../../persistence/model/AnnotationSet";
+import { Corpus } from "../../../persistence/model/Corpus";
+import { Document } from "../../../persistence/model/Document";
+import { Tag } from "../../../persistence/model/Tag";
 import Hashing from "../../../util/Hashing";
+
+import { Inject } from "typescript-ioc";
 import { NotFoundError } from "typescript-rest/dist/server/model/errors";
 
 /**
@@ -183,18 +185,18 @@ export default abstract class AbstractImporter {
      */
     private async persist(corpusName: string, annotationSetName: string, documents: ImportDocument[]): Promise<Corpus> {
         const corpus = await this.corpusRepository.save({
-            name: corpusName,
-            description: "Imported Corpus."
+            description: "Imported Corpus.",
+            name: corpusName
         } as Corpus)
 
         const annotations = new Map<string, AnnotationAttributes>();
         let fallbackAnnotationSet: AnnotationSet | undefined
         for (const importDocument of documents) {
             const document = await this.documentRepository.save({
-                filename: importDocument.fileName,
                 content: importDocument.content,
+                corpusId: corpus.corpusId,
                 documentHash: Hashing.sha256Hash(importDocument.content),
-                corpusId: corpus.corpusId
+                filename: importDocument.fileName
             } as Document)
 
             for (const tag of importDocument.tags) {
@@ -211,15 +213,15 @@ export default abstract class AbstractImporter {
                             const mayBeAnnotationSet = await this.annotationSetRepository.getByName(annotationSetName)
                             fallbackAnnotationSet = mayBeAnnotationSet ? mayBeAnnotationSet :
                                 await this.annotationSetRepository.save({
-                                    name: annotationSetName,
-                                    description: "Auto-generated Annotation Set"
+                                    description: "Auto-generated Annotation Set",
+                                    name: annotationSetName
                                 } as AnnotationSet)
                             corpus.addAnnotationSet(fallbackAnnotationSet)
                         }
                         annotation = await this.annotationRepository.save({
-                            name: tag.annotation.name,
+                            annotationSetId: fallbackAnnotationSet.annotationSetId,
                             color: tag.annotation.color || chroma.random().hex(),
-                            annotationSetId: fallbackAnnotationSet.annotationSetId
+                            name: tag.annotation.name
                         } as Annotation)
                     }
                     annotations.set(annotation.name, annotation)
@@ -228,10 +230,10 @@ export default abstract class AbstractImporter {
                     throw new Error("Annotation for Tag from " + tag.toIndex + " to " + tag.toIndex + " defined as " + tag.annotation.name + " could not be imported.")
                 }
                 await this.tagRepository.save({
-                    documentId: document.documentId,
                     annotationId: annotation.annotationId,
-                    startIndex: tag.fromIndex,
+                    documentId: document.documentId,
                     endIndex: tag.toIndex,
+                    startIndex: tag.fromIndex
                 } as Tag)
             }
         }

@@ -1,29 +1,24 @@
 import {
     DELETE,
     Errors,
-    FileParam,
-    FilesParam,
-    FormParam,
     GET,
     Path,
     PathParam,
     POST,
-    PreProcessor, PUT, QueryParam
+    PUT, QueryParam
 } from "typescript-rest";
-import { Inject } from "typescript-ioc";
+
 import { CorpusRepository } from "../persistence/dao/CorpusRepository";
 import { DocumentRepository } from "../persistence/dao/DocumentRepository";
-import { DocumentImportService } from "../services/documentImport/DocumentImportService";
-import { Document } from "../persistence/model/Document";
-import { Annotation } from "../persistence/model/Annotation";
-import { Tag } from "../persistence/model/Tag";
 import { TagRepository } from "../persistence/dao/TagRepository";
+import { Document } from "../persistence/model/Document";
+import { Tag } from "../persistence/model/Tag";
+
+import { Inject } from "typescript-ioc";
 
 @Path("document/:documentId/tag")
 export class TagController {
 
-    @Inject
-    private corpusRepository!: CorpusRepository;
 
     @Inject
     private documentRepository!: DocumentRepository;
