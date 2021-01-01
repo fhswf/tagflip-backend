@@ -26,7 +26,8 @@ export class DocumentController {
 
     @GET
     @ConvertSearchFilter
-    public async listDocuments(@PathParam("corpusId") corpusId: number,
+    public async listDocuments(
+        @PathParam("corpusId") corpusId: number,
         @QueryParam("count") count?: boolean,
         @QueryParam("offset") offset?: number,
         @QueryParam("limit") limit?: number,
