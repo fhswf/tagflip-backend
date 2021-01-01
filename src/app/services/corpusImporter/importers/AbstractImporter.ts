@@ -186,7 +186,7 @@ export default abstract class AbstractImporter {
     private async persist(corpusName: string, annotationSetName: string, documents: ImportDocument[]): Promise<Corpus> {
         const corpus = await this.corpusRepository.save({
             description: "Imported Corpus.",
-            name: corpusName
+            name: corpusName,
         } as Corpus)
 
         const annotations = new Map<string, AnnotationAttributes>();
@@ -196,7 +196,7 @@ export default abstract class AbstractImporter {
                 content: importDocument.content,
                 corpusId: corpus.corpusId,
                 documentHash: Hashing.sha256Hash(importDocument.content),
-                filename: importDocument.fileName
+                filename: importDocument.fileName,
             } as Document)
 
             for (const tag of importDocument.tags) {
@@ -214,14 +214,14 @@ export default abstract class AbstractImporter {
                             fallbackAnnotationSet = mayBeAnnotationSet ? mayBeAnnotationSet :
                                 await this.annotationSetRepository.save({
                                     description: "Auto-generated Annotation Set",
-                                    name: annotationSetName
+                                    name: annotationSetName,
                                 } as AnnotationSet)
                             corpus.addAnnotationSet(fallbackAnnotationSet)
                         }
                         annotation = await this.annotationRepository.save({
                             annotationSetId: fallbackAnnotationSet.annotationSetId,
                             color: tag.annotation.color || chroma.random().hex(),
-                            name: tag.annotation.name
+                            name: tag.annotation.name,
                         } as Annotation)
                     }
                     annotations.set(annotation.name, annotation)
@@ -233,11 +233,10 @@ export default abstract class AbstractImporter {
                     annotationId: annotation.annotationId,
                     documentId: document.documentId,
                     endIndex: tag.toIndex,
-                    startIndex: tag.fromIndex
+                    startIndex: tag.fromIndex,
                 } as Tag)
             }
         }
-
         return corpus;
     }
 

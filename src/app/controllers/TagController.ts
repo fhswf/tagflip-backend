@@ -5,7 +5,8 @@ import {
     Path,
     PathParam,
     POST,
-    PUT, QueryParam
+    PUT,
+    QueryParam,
 } from "typescript-rest";
 
 import { CorpusRepository } from "../persistence/dao/CorpusRepository";
