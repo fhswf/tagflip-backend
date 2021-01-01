@@ -27,9 +27,9 @@ import { NotFoundError } from "typescript-rest/dist/server/model/errors";
  * @param name the name of the importer.
  * @constructor the constructor of the type.
  */
-export const Importer = <T extends AbstractImporter>(name: string) => {
+export const Importer = <_T extends AbstractImporter>(name: string) => {
     console.log("Discovered Importer with name:", name);
-    return <T extends { new(...args: any[]): AbstractImporter }>(constructor: T) => {
+    return <T extends new (...args: any[]) => AbstractImporter>(constructor: T) => {
         AbstractImporter.register(name, new constructor())
     }
 }
@@ -92,7 +92,7 @@ export default abstract class AbstractImporter {
      */
     public static register(name: string, importer: AbstractImporter) {
         if (AbstractImporter.importers.has(name)) {
-            let knownImporter = AbstractImporter.importers.get(name);
+            const knownImporter = AbstractImporter.importers.get(name);
             if (knownImporter)
                 throw new NotFoundError("Importer with name " + name + " is already known: " + knownImporter.constructor);
         }
@@ -105,7 +105,7 @@ export default abstract class AbstractImporter {
      */
     public static forName(name: string): AbstractImporter {
         if (AbstractImporter.importers.has(name)) {
-            let knownImporter = AbstractImporter.importers.get(name);
+            const knownImporter = AbstractImporter.importers.get(name);
             if (knownImporter)
                 return knownImporter;
         }
@@ -126,33 +126,33 @@ export default abstract class AbstractImporter {
         try {
             const [zipFiles, regularFiles] = _.partition(files, f => ["application/zip", "application/x-zip-compressed", "multipart/x-zip"].includes(f.mimetype))
             for (const file of zipFiles) {
-                let readableBuffer = new streamBuffers.ReadableStreamBuffer();
+                const readableBuffer = new streamBuffers.ReadableStreamBuffer();
                 readableBuffer.put(file.buffer)
                 readableBuffer.stop();
 
-                let tmpZipFolder = tmp.dirSync()
+                const tmpZipFolder = tmp.dirSync()
                 tmpFolders.push(tmpZipFolder)
                 console.log('Creating temporary directory: ', tmpZipFolder.name);
 
                 await readableBuffer.pipe(unzipper.Extract({ path: tmpZipFolder.name })).promise();
 
                 const extractedFiles = await new Promise<string[]>((resolve, reject) => {
-                    recursive(tmpZipFolder.name, [], (err, files) => {
-                        resolve(files)
+                    recursive(tmpZipFolder.name, [], (err, _files) => {
+                        resolve(_files)
                     })
                 })
                 totalFiles.push(...extractedFiles)
             }
 
-            let tmpFolder = tmp.dirSync()
+            const tmpFolder = tmp.dirSync()
             console.log('Creating temporary directory: ', tmpFolder.name);
             tmpFolders.push(tmpFolder)
             for (const file of regularFiles) {
-                let filePath = path.join(tmpFolder.name, file.originalname);
+                const filePath = path.join(tmpFolder.name, file.originalname);
                 fs.writeFileSync(filePath, file.buffer.toString())
                 totalFiles.push(filePath)
             }
-            let importDocuments: ImportDocument[] = await this.doImport(corpusName, annotationSetName, totalFiles)
+            const importDocuments: ImportDocument[] = await this.doImport(corpusName, annotationSetName, totalFiles)
             return await this.persist(corpusName, annotationSetName, importDocuments)
         } catch (e) {
             throw e;
@@ -188,9 +188,9 @@ export default abstract class AbstractImporter {
         } as Corpus)
 
         const annotations = new Map<string, AnnotationAttributes>();
-        let fallbackAnnotationSet: AnnotationSet | undefined = undefined
+        let fallbackAnnotationSet: AnnotationSet | undefined
         for (const importDocument of documents) {
-            let document = await this.documentRepository.save({
+            const document = await this.documentRepository.save({
                 filename: importDocument.fileName,
                 content: importDocument.content,
                 documentHash: Hashing.sha256Hash(importDocument.content),
@@ -208,7 +208,7 @@ export default abstract class AbstractImporter {
                     annotation = await this.annotationRepository.getByName(tag.annotation.name);
                     if (!annotation) {
                         if (!fallbackAnnotationSet) {
-                            let mayBeAnnotationSet = await this.annotationSetRepository.getByName(annotationSetName)
+                            const mayBeAnnotationSet = await this.annotationSetRepository.getByName(annotationSetName)
                             fallbackAnnotationSet = mayBeAnnotationSet ? mayBeAnnotationSet :
                                 await this.annotationSetRepository.save({
                                     name: annotationSetName,
