@@ -101,6 +101,4 @@ export default abstract class AbstractExporter {
      * @param targetFolder a folder in the local filesystem where the export result can be stored safely
      */
     protected abstract doExport(corpusId: number, targetFolder: string): Promise<void>
-
-
 }
