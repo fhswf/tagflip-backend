@@ -1,8 +1,8 @@
-import {Inject, Singleton} from "typescript-ioc";
-import {CorpusRepository} from "../../persistence/dao/CorpusRepository";
+import { Inject, Singleton } from "typescript-ioc";
+import { CorpusRepository } from "../../persistence/dao/CorpusRepository";
 import DocumentExtractor from "./persistors";
-import {Document} from "../../persistence/model/Document";
-import {RequireTransaction} from "../../persistence/decorator/Transaction";
+import { Document } from "../../persistence/model/Document";
+import { RequireTransaction } from "../../persistence/decorator/Transaction";
 
 @Singleton
 export class DocumentImportService {
@@ -12,9 +12,9 @@ export class DocumentImportService {
 
 
     @RequireTransaction
-    public async import(corpusId: number, files: Express.Multer.File[]) : Promise<Document[]> {
-        let totalDocuments = new Array<Document>();
-        for (let file of files) {
+    public async import(corpusId: number, files: Express.Multer.File[]): Promise<Document[]> {
+        const totalDocuments = new Array<Document>();
+        for (const file of files) {
             totalDocuments.push(...await DocumentExtractor.forType(file.mimetype).persist(corpusId, file));
         }
 

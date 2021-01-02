@@ -146,15 +146,15 @@ export class AnnotationTaskController {
         let oldAnnotationTask = await this.annotationTaskRepository.read(annotationTask.annotationTaskId);
         let savedAnnotationTask;
         if (oldAnnotationTask.annotationTaskStateId !== annotationTask.annotationTaskStateId) {
-            await this.annotationTaskRepository.incrementPrioritiesAfter(annotationTask.annotationTaskStateId, annotationTask.priority);
+            this.annotationTaskRepository.incrementPrioritiesAfter(annotationTask.annotationTaskStateId, annotationTask.priority);
             savedAnnotationTask = await this.annotationTaskRepository.save(annotationTask);
-            await this.annotationTaskRepository.decrementPrioritiesAfter(oldAnnotationTask.annotationTaskStateId, oldAnnotationTask.priority);
+            this.annotationTaskRepository.decrementPrioritiesAfter(oldAnnotationTask.annotationTaskStateId, oldAnnotationTask.priority);
         } else {
             if (oldAnnotationTask.priority < annotationTask.priority) {
-                await this.annotationTaskRepository.decrementPrioritiesAfter(oldAnnotationTask.annotationTaskStateId, oldAnnotationTask.priority, annotationTask.priority);
+                this.annotationTaskRepository.decrementPrioritiesAfter(oldAnnotationTask.annotationTaskStateId, oldAnnotationTask.priority, annotationTask.priority);
                 savedAnnotationTask = await this.annotationTaskRepository.save(annotationTask);
             } else {
-                await this.annotationTaskRepository.incrementPrioritiesAfter(oldAnnotationTask.annotationTaskStateId, annotationTask.priority, oldAnnotationTask.priority);
+                this.annotationTaskRepository.incrementPrioritiesAfter(oldAnnotationTask.annotationTaskStateId, annotationTask.priority, oldAnnotationTask.priority);
                 savedAnnotationTask = await this.annotationTaskRepository.save(annotationTask);
             }
         }

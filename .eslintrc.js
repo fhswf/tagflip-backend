@@ -6,6 +6,10 @@ module.exports = {
         "node": true,
     },
     parser: '@typescript-eslint/parser',
+    parserOptions: {
+        "project": "tsconfig.json",
+        "sourceType": "module"
+    },
     plugins: [
         '@typescript-eslint',
     ],
@@ -14,4 +18,7 @@ module.exports = {
         'plugin:@typescript-eslint/recommended',
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
     ],
+    rules: {
+        "arrow-parens": ["error", "as-needed"],
+    },
 };
