@@ -49,10 +49,10 @@ export class AnnotationTaskController {
         const uuid = uuidv4();
         const shortUuid = short().fromUUID(uuid)
         const latestCount = await this.annotationTaskRepository.count({ where: { "annotationTaskStateId": annotationTaskStateIdOpen } });
-        for (let partitionIndex in documentPartitions) {
-            let partition = documentPartitions[partitionIndex];
-            let partitionNumber = Number.parseInt(partitionIndex) + 1;
-            let newAnnotationTask = await this.annotationTaskRepository.save({
+        for (const partitionIndex in documentPartitions) {
+            const partition = documentPartitions[partitionIndex];
+            const partitionNumber = Number.parseInt(partitionIndex) + 1;
+            const newAnnotationTask = await this.annotationTaskRepository.save({
                 corpusId: corpus.corpusId,
                 priority: (latestCount + Number.parseInt(partitionIndex)),
                 annotationTaskStateId: (await this.annotationTaskStateRepository.getByName("open")).annotationTaskStateId,
@@ -61,7 +61,7 @@ export class AnnotationTaskController {
             } as AnnotationTask)
 
             let documentCount = 0;
-            for (let document of partition) {
+            for (const document of partition) {
                 await this.annotationTaskDocumentRepository.save({
                     documentId: document.documentId,
                     annotationTaskId: newAnnotationTask.annotationTaskId,
@@ -72,14 +72,14 @@ export class AnnotationTaskController {
             if (!withMeta) {
                 annotationTasks.push(newAnnotationTask)
             } else {
-                let annotationTaskMeta: Meta<AnnotationTaskMeta> = {
+                const annotationTaskMeta: Meta<AnnotationTaskMeta> = {
                     meta: {
                         numberOfDocuments: documentCount,
                         numberOfClosedDocuments: 0,
                         numberOfOpenDocuments: documentCount
                     }
                 }
-                let newAnnotationTaskPure = this.annotationTaskRepository.toPlain(newAnnotationTask);
+                const newAnnotationTaskPure = this.annotationTaskRepository.toPlain(newAnnotationTask);
                 Object.assign(newAnnotationTaskPure, annotationTaskMeta)
                 annotationTasks.push(newAnnotationTaskPure)
             }
@@ -96,26 +96,26 @@ export class AnnotationTaskController {
 
     @GET
     @IgnoreNextMiddlewares
-    public async list(@QueryParam("state") state: string = "", @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask[] | (AnnotationTask & Meta<AnnotationTaskMeta>)[]> {
-        let where = {}
+    public async list(@QueryParam("state") state = "", @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask[] | (AnnotationTask & Meta<AnnotationTaskMeta>)[]> {
+        const where = {}
         let annotationTaskState: AnnotationTaskState;
         if (state) {
             annotationTaskState = await this.annotationTaskStateRepository.getByName(state);
             Object.assign(where, { where: { annotationTaskStateId: annotationTaskState.annotationTaskStateId } })
         } else {
             // determine visible states
-            let visibleStates: AnnotationTaskState[] = await this.annotationTaskStateRepository.list({ where: { visible: true } });
+            const visibleStates: AnnotationTaskState[] = await this.annotationTaskStateRepository.list({ where: { visible: true } });
             Object.assign(where, { where: { annotationTaskStateId: { [Op.in]: visibleStates.map(s => s.annotationTaskStateId) } } })
         }
 
-        let annotationTasks = await this.annotationTaskRepository.list({ include: ['corpus'], ...where });
+        const annotationTasks = await this.annotationTaskRepository.list({ include: ['corpus'], ...where });
         if (!withMeta)
             return annotationTasks;
 
         // determine meta data
-        let annotationTaskResult = []
-        for (let annotationTask of annotationTasks) {
-            let annotationTaskPure = this.annotationTaskRepository.toPlain(annotationTask);
+        const annotationTaskResult = []
+        for (const annotationTask of annotationTasks) {
+            const annotationTaskPure = this.annotationTaskRepository.toPlain(annotationTask);
             Object.assign(annotationTaskPure, { meta: await this.annotationTaskDocumentRepository.getAnnotationTaskMeta(annotationTask.annotationTaskId) })
             annotationTaskResult.push(annotationTaskPure)
         }
@@ -126,9 +126,9 @@ export class AnnotationTaskController {
     @Path(":id")
     @GET
     public async read(@PathParam("id") annotationTaskId: number): Promise<AnnotationTask> {
-        let annotationTask = await this.annotationTaskRepository.read(annotationTaskId, 'defaultScope', { include: ['corpus'] });
-        let annotationTaskMeta = await this.annotationTaskDocumentRepository.getAnnotationTaskMeta(annotationTaskId)
-        let annotationTaskPure = this.annotationTaskRepository.toPlain(annotationTask);
+        const annotationTask = await this.annotationTaskRepository.read(annotationTaskId, 'defaultScope', { include: ['corpus'] });
+        const annotationTaskMeta = await this.annotationTaskDocumentRepository.getAnnotationTaskMeta(annotationTaskId)
+        const annotationTaskPure = this.annotationTaskRepository.toPlain(annotationTask);
         Object.assign(annotationTaskPure, { meta: annotationTaskMeta })
         return annotationTaskPure;
     }
@@ -143,7 +143,7 @@ export class AnnotationTaskController {
     @PUT
     @BeginTransaction
     public async update(annotationTask: AnnotationTask): Promise<AnnotationTask | null> {
-        let oldAnnotationTask = await this.annotationTaskRepository.read(annotationTask.annotationTaskId);
+        const oldAnnotationTask = await this.annotationTaskRepository.read(annotationTask.annotationTaskId);
         let savedAnnotationTask;
         if (oldAnnotationTask.annotationTaskStateId !== annotationTask.annotationTaskStateId) {
             this.annotationTaskRepository.incrementPrioritiesAfter(annotationTask.annotationTaskStateId, annotationTask.priority);

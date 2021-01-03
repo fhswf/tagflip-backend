@@ -38,7 +38,7 @@ export class DocumentController {
         if (count) {
             if (searchFilter) {
                 return this.documentRepository.count({
-                    where: { [Op.and]: [corpusId, searchFilter.map((s) => SearchFilterImpl.toSequelize(s))] },
+                    where: { [Op.and]: [corpusId, searchFilter.map(s => SearchFilterImpl.toSequelize(s))] },
                 })
             }
             return this.documentRepository.count({ where: { corpusId } });
@@ -47,7 +47,7 @@ export class DocumentController {
         const corpus = await this.corpusRepository.read(corpusId);
         const options = { limit, offset, order: [[sortField, sortOrder] as OrderItem] }
         if (searchFilter) {
-            Object.assign(options, { where: { [Op.and]: searchFilter.map((s) => SearchFilterImpl.toSequelize(s)) } })
+            Object.assign(options, { where: { [Op.and]: searchFilter.map(s => SearchFilterImpl.toSequelize(s)) } })
         }
 
         return corpus.getDocuments(options);
@@ -58,7 +58,7 @@ export class DocumentController {
     public async read(@PathParam("corpusId") corpusId: number, @PathParam("id") documentId: number): Promise<Document> {
         const document = await this.documentRepository.read(documentId, 'full');
         if (document.corpusId !== corpusId) {
-            throw new Errors.NotFoundError("Given coprus with ID " + corpusId + " does not contain document");
+            throw new Errors.NotFoundError(`Given coprus with ID {corpusId} does not contain document`);
         }
         return document;
     }
@@ -68,7 +68,7 @@ export class DocumentController {
     public async delete(@PathParam("corpusId") corpusId: number, @PathParam("id") documentId: number): Promise<void> {
         const document = await this.documentRepository.read(documentId);
         if (document.corpusId !== corpusId) {
-            throw new Errors.NotFoundError("Given coprus with ID " + corpusId + " does not contain document");
+            throw new Errors.NotFoundError(`Given coprus with ID {corpusId} does not contain document`);
         }
         await this.documentRepository.delete(documentId);
     }

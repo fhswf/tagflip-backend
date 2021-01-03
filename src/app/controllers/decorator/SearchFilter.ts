@@ -1,11 +1,12 @@
-import {Operator, SearchFilter} from "@fhswf/tagflip-common";
+import { Operator, SearchFilter } from "@fhswf/tagflip-common";
+import { Op, WhereAttributeHash } from "sequelize";
 
 export const SEARCH_QUERY_PARAMETER = "SEARCH_QUERY_PARAMETER"
 
-const {Op} = require("sequelize");
-const SearchFilterParam = (target: Object, propertyKey: string, parameterIndex: number) => {
-    let existingSearchFilters: number[] =
-        Reflect.getOwnMetadata(SEARCH_QUERY_PARAMETER, target, propertyKey) || [];
+
+const SearchFilterParam = <O>(target: O, propertyKey: string, parameterIndex: number): void => {
+    const existingSearchFilters: number[] =
+        <number[]>Reflect.getOwnMetadata(SEARCH_QUERY_PARAMETER, target, propertyKey) || [];
     existingSearchFilters.push(parameterIndex)
     Reflect.defineMetadata(
         SEARCH_QUERY_PARAMETER,
@@ -15,57 +16,60 @@ const SearchFilterParam = (target: Object, propertyKey: string, parameterIndex: 
     );
 }
 
-const ConvertSearchFilter = <T>(
-    target: any,
+//type TargetType<S> = (args: any[]) => S;
+
+const ConvertSearchFilter = <O, S>(
+    target: O,
     propertyKey: string,
-    descriptor: TypedPropertyDescriptor<any>
-) => {
-    let func = target[propertyKey];
-    let parameterIndices = Reflect.getMetadata(SEARCH_QUERY_PARAMETER, target, propertyKey)
-    let method = descriptor.value;
-    descriptor.value = function () {
-        for (let index of parameterIndices) {
-            if (arguments[index])
-                arguments[index] = SearchFilterImpl.ofJson(arguments[index])
+    descriptor: PropertyDescriptor
+): void => {
+    const parameterIndices = <number[]>Reflect.getMetadata(SEARCH_QUERY_PARAMETER, target, propertyKey)
+    const method = <(...args: any[]) => S>descriptor.value
+    descriptor.value = (...args: any[]): (S | undefined) => {
+        for (const index of parameterIndices) {
+            if (args[index])
+                args[index] = SearchFilterImpl.ofJson(args[index])
         }
-        return method.apply(this, arguments);
+        if (method) {
+            return method.apply(this, args)
+        }
     }
 }
 
-export {SearchFilterParam, ConvertSearchFilter}
+export { SearchFilterParam, ConvertSearchFilter }
 
 export default class SearchFilterImpl implements SearchFilter {
 
     field!: string;
-
-    filterValue!: any;
-
+    filterValue!: string | number | boolean;
     operator!: Operator;
 
     constructor(filter: SearchFilter) {
         this.field = filter.field;
-        this.filterValue = filter.filterValue;
+        this.filterValue = <string | number | boolean>filter.filterValue;
         this.operator = filter.operator;
     }
 
     public static ofJson(json: string): SearchFilter | SearchFilter[] {
-        let object = JSON.parse(json);
+        const object = <SearchFilter>JSON.parse(json);
         if (Array.isArray(object)) {
-            let filters = []
-            for (let elem of object) {
+            const filters = []
+            for (const elem of object) {
                 filters.push(new SearchFilterImpl(elem as SearchFilter))
             }
             return filters;
         }
-        return new SearchFilterImpl(object)
+        else {
+            return new SearchFilterImpl(object)
+        }
     }
 
-    public static toSequelize(searchFilter: SearchFilter) {
+    public static toSequelize(searchFilter: SearchFilter): WhereAttributeHash {
         switch (searchFilter.operator) {
             case Operator.STARTS_WITH:
-                return {[searchFilter.field]: {[Op.startsWith]: searchFilter.filterValue}}
+                return { [searchFilter.field]: { [Op.startsWith]: <string>searchFilter.filterValue } }
             case Operator.SUBSTRING:
-                return {[searchFilter.field]: {[Op.substring]: searchFilter.filterValue}}
+                return { [searchFilter.field]: { [Op.substring]: <string>searchFilter.filterValue } }
             default:
                 throw Error("Filter Operation not supported.")
         }
