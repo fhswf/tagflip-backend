@@ -20,5 +20,7 @@ module.exports = {
     ],
     rules: {
         "arrow-parens": ["error", "as-needed"],
+        "require-await": "off",
+        "@typescript-eslint/require-await": "off"
     },
 };

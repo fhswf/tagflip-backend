@@ -35,7 +35,8 @@ export class AnnotationTaskController {
     @Path("generate/:corpusId/:partitions")
     @BeginTransaction
     @IgnoreNextMiddlewares
-    public async generate(@PathParam("corpusId") corpusId: number,
+    public async generate(
+        @PathParam("corpusId") corpusId: number,
         @PathParam("partitions") partitions: number,
         @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask[] | (AnnotationTask & Meta<AnnotationTaskMeta>)[]> {
         const corpus: Corpus = await this.corpusRepository.read(corpusId);
@@ -59,7 +60,7 @@ export class AnnotationTaskController {
         annotationTasks: AnnotationTask[]) {
         for (let partitionIndex = 0; partitionIndex < documentPartitions.length; partitionIndex++) {
             const partition = documentPartitions[partitionIndex];
-            const partitionNumber = partitionIndex + 1;
+            //const partitionNumber = partitionIndex + 1;
             const newAnnotationTask = await this.annotationTaskRepository.save({
                 corpusId: corpus.corpusId,
                 priority: (latestCount + partitionIndex),
@@ -103,7 +104,9 @@ export class AnnotationTaskController {
 
     @GET
     @IgnoreNextMiddlewares
-    public async list(@QueryParam("state") state = "", @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask[] | (AnnotationTask & Meta<AnnotationTaskMeta>)[]> {
+    public async list(
+        @QueryParam("state") state = "",
+        @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask[] | (AnnotationTask & Meta<AnnotationTaskMeta>)[]> {
         const where = {}
         let annotationTaskState: AnnotationTaskState;
         if (state) {
