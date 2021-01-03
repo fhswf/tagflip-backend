@@ -1,4 +1,4 @@
-import { Importer, ImportTag } from "../AbstractImporter";
+import { Importer } from "../AbstractImporter";
 import { IOBImporter } from "./IOBImporter";
 
 /** Import NER corpus in CoNLL 2003 format (columns separated by spaces)
@@ -11,8 +11,6 @@ import { IOBImporter } from "./IOBImporter";
  */
 @Importer("CoNLL 2003 (NER)")
 export class CoNLL2003Importer extends IOBImporter {
-
-    static EXT = [".conll"]
 
     constructor() {
         super(/\ /, 0, [3], undefined, "CoNLL 2003 (NER)")

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import * as cookieParser from "cookie-parser";
 import * as cors from "cors";
 import { CorsOptions } from "cors";
@@ -67,7 +69,7 @@ class TagFlipServer {
             TestController, CorpusController, DocumentController,
             AnnotationSetController, AnnotationController, TagController, AnnotationTaskController, AnnotationTaskDocumentController);
         this.app.listen(config.serverPort, () => {
-            console.log("Server listening on port " + config.serverPort + "!");
+            console.log(`Server listening on port {config.serverPort}!`);
         });
 
         // error handler

@@ -1,9 +1,8 @@
-import AbstractImporter, { ImportAnnotation, ImportDocument, Importer, ImportTag } from "../AbstractImporter";
-
 import * as fs from "fs";
-import * as _ from "lodash"
 import * as path from "path";
 import { createInterface } from "readline";
+import * as _ from "lodash"
+import AbstractImporter, { ImportDocument, ImportTag } from "../AbstractImporter";
 
 interface Record {
     text: string;
@@ -11,7 +10,9 @@ interface Record {
     tagSet: Set<string>
 }
 
-
+/**
+ * Generic importer for files in IOB format @link{https://en.wikipedia.org/wiki/Inside%E2%80%93outside%E2%80%93beginning_(tagging)}.
+ */
 export class IOBImporter extends AbstractImporter {
     splitter: RegExp;
     nerFields: number[];
@@ -127,7 +128,7 @@ export class IOBImporter extends AbstractImporter {
             })
         });
 
-        current.forEach((marker, j) => {
+        current.forEach((marker) => {
             if (marker) {
                 marker.toIndex = end[end.length - 1]
                 annos.push(marker)

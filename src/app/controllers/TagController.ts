@@ -9,7 +9,6 @@ import {
     QueryParam,
 } from "typescript-rest";
 
-import { CorpusRepository } from "../persistence/dao/CorpusRepository";
 import { DocumentRepository } from "../persistence/dao/DocumentRepository";
 import { TagRepository } from "../persistence/dao/TagRepository";
 import { Document } from "../persistence/model/Document";

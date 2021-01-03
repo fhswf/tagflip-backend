@@ -10,17 +10,17 @@ import {
     PUT,
     QueryParam, Return
 } from "typescript-rest";
-import {Corpus} from "../persistence/model/Corpus";
-import {CorpusRepository} from "../persistence/dao/CorpusRepository";
-import {Inject} from "typescript-ioc";
-import SearchFilter, {ConvertSearchFilter, SearchFilterParam} from "./decorator/SearchFilter";
-import {Op, OrderItem} from "sequelize";
-import {AnnotationSet} from "../persistence/model/AnnotationSet";
-import {AnnotationSetRepository} from "../persistence/dao/AnnotationSetRepository";
+import { Corpus } from "../persistence/model/Corpus";
+import { CorpusRepository } from "../persistence/dao/CorpusRepository";
+import { Inject } from "typescript-ioc";
+import SearchFilter, { ConvertSearchFilter, SearchFilterParam } from "./decorator/SearchFilter";
+import { Op, OrderItem } from "sequelize";
+import { AnnotationSet } from "../persistence/model/AnnotationSet";
+import { AnnotationSetRepository } from "../persistence/dao/AnnotationSetRepository";
 import AbstractImporter from "../services/corpusImporter/importers";
-import {BeginTransaction} from "../persistence/decorator/Transaction";
-import {BadRequestError, NotFoundError} from "typescript-rest/dist/server/model/errors";
-import {AnnotatedCorpusImportService} from "../services/corpusImporter";
+import { BeginTransaction } from "../persistence/decorator/Transaction";
+import { BadRequestError, NotFoundError } from "typescript-rest/dist/server/model/errors";
+import { AnnotatedCorpusImportService } from "../services/corpusImporter";
 import AbstractExporter from "../services/corpusExporter/exporters/AbstractExporter";
 import AnnotatedCorpusExportService from "../services/corpusExporter/AnnotatedCorpusExportService";
 import dateFormat = require("dateformat");
@@ -43,7 +43,7 @@ export class CorpusController {
     @Path("/import")
     @GET
     @IgnoreNextMiddlewares
-    public async importerTypes() : Promise<string[]> {
+    public async importerTypes(): Promise<string[]> {
         return AbstractImporter.getImporterNames();
     }
 
@@ -70,7 +70,7 @@ export class CorpusController {
     @Path("/export")
     @GET
     @IgnoreNextMiddlewares
-    public async exportTypes() : Promise<string[]> {
+    public async exportTypes(): Promise<string[]> {
         return AbstractExporter.getExporterNames();
     }
 
@@ -79,30 +79,30 @@ export class CorpusController {
     public async export(
         @PathParam("corpusId") corpusId: number,
         @QueryParam("exporterName") exporterName: string): Promise<Return.DownloadBinaryData> {
-        if(!exporterName)
+        if (!exporterName)
             throw new BadRequestError("Exporter is not defined.")
-        return new Return.DownloadBinaryData(await this.annotatedCorpusExportService.export(exporterName, corpusId),'application/zip',`export-corpus-${corpusId}_${dateFormat("yyyymmdd_HHMMss")}.zip`);
+        return new Return.DownloadBinaryData(await this.annotatedCorpusExportService.export(exporterName, corpusId), 'application/zip', `export-corpus-${corpusId}_${dateFormat("yyyymmdd_HHMMss")}.zip`);
     }
 
 
     @GET
     @ConvertSearchFilter
     public async list(@QueryParam("count") count?: boolean,
-                      @QueryParam("offset") offset?: number,
-                      @QueryParam("limit")  limit?: number,
-                      @QueryParam("sortField")  sortField: string = "corpusId",
-                      @QueryParam("sortOrder")  sortOrder: string = "ASC",
-                      @QueryParam("searchFilter") @SearchFilterParam searchFilter?: SearchFilter[]): Promise<Corpus[] | number> {
+        @QueryParam("offset") offset?: number,
+        @QueryParam("limit") limit?: number,
+        @QueryParam("sortField") sortField = "corpusId",
+        @QueryParam("sortOrder") sortOrder = "ASC",
+        @QueryParam("searchFilter") @SearchFilterParam searchFilter?: SearchFilter[]): Promise<Corpus[] | number> {
         if (count) {
             if (searchFilter) {
-                return this.corpusRepository.count({where: {[Op.and]: [searchFilter.map(s => SearchFilter.toSequelize(s))]}})
+                return this.corpusRepository.count({ where: { [Op.and]: [searchFilter.map(s => SearchFilter.toSequelize(s))] } })
             }
             return this.corpusRepository.count();
         }
 
-        let options = {limit, offset, order: [[sortField, sortOrder] as OrderItem]}
+        const options = { limit, offset, order: [[sortField, sortOrder] as OrderItem] }
         if (searchFilter) {
-            Object.assign(options, {where: {[Op.and]: searchFilter.map(s => SearchFilter.toSequelize(s))}})
+            Object.assign(options, { where: { [Op.and]: searchFilter.map(s => SearchFilter.toSequelize(s)) } })
         }
 
         return this.corpusRepository.list(options);
@@ -116,10 +116,10 @@ export class CorpusController {
 
     @POST
     public async create(corpus: Corpus): Promise<Corpus> {
-        let newCorpus = await this.corpusRepository.save(corpus);
+        const newCorpus = await this.corpusRepository.save(corpus);
         if (corpus.annotationSets) {
             for (const annotationSet of corpus.annotationSets) {
-                newCorpus.addAnnotationSet(this.annotationSetRepository.build(annotationSet))
+                void newCorpus.addAnnotationSet(this.annotationSetRepository.build(annotationSet))
             }
         }
 
@@ -140,7 +140,7 @@ export class CorpusController {
     @Path(":corpusId/annotationset")
     @GET
     public async listAnnotationSets(@PathParam("corpusId") corpusId: number): Promise<AnnotationSet[]> {
-        let corpus = await this.corpusRepository.read(corpusId);
+        const corpus = await this.corpusRepository.read(corpusId);
         return corpus.getAnnotationSets();
     }
 
@@ -148,17 +148,17 @@ export class CorpusController {
     @Path(":corpusId/annotationset/:annotationSetId")
     @PUT
     public async addAnnotationSet(@PathParam("corpusId") corpusId: number, @PathParam("annotationSetId") annotationSetId: number): Promise<void> {
-        let corpus = await this.corpusRepository.read(corpusId);
-        let annotationSet = await this.annotationSetRepository.read(annotationSetId);
-        corpus.addAnnotationSet(annotationSet)
+        const corpus = await this.corpusRepository.read(corpusId);
+        const annotationSet = await this.annotationSetRepository.read(annotationSetId);
+        void corpus.addAnnotationSet(annotationSet)
     }
 
     @Path(":corpusId/annotationset/:annotationSetId")
     @DELETE
     public async removeAnnotationSet(@PathParam("corpusId") corpusId: number, @PathParam("annotationSetId") annotationSetId: number): Promise<void> {
-        let corpus = await this.corpusRepository.read(corpusId);
-        let annotationSet = await this.annotationSetRepository.read(annotationSetId);
-        corpus.removeAnnotationSet(annotationSet)
+        const corpus = await this.corpusRepository.read(corpusId);
+        const annotationSet = await this.annotationSetRepository.read(annotationSetId);
+        void corpus.removeAnnotationSet(annotationSet)
     }
 
 

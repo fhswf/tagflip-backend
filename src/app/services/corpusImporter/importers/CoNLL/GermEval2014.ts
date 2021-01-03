@@ -1,4 +1,4 @@
-import { Importer, ImportTag } from "../AbstractImporter"
+import { Importer } from "../AbstractImporter"
 import { IOBImporter } from "./IOBImporter"
 
 
@@ -14,6 +14,8 @@ import { IOBImporter } from "./IOBImporter"
  */
 @Importer("GermEval2014 (NER)")
 export class GermEval2014Importer extends IOBImporter {
+
+    constructor() {
         super(/\t/, 1, [2, 3], undefined, "GermEval2014 (NER)")
     }
 }

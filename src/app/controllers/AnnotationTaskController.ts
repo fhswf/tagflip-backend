@@ -1,19 +1,20 @@
-import {DELETE, GET, IgnoreNextMiddlewares, Path, PathParam, POST, PUT, QueryParam} from "typescript-rest";
-import {Inject} from "typescript-ioc";
-import {AnnotationTaskRepository} from "../persistence/dao/AnnotationTaskRepository";
-import {AnnotationTask} from "../persistence/model/AnnotationTask";
-import {CorpusRepository} from "../persistence/dao/CorpusRepository";
-import {Corpus} from "../persistence/model/Corpus";
-import {v4 as uuidv4} from 'uuid';
-import {BeginTransaction} from "../persistence/decorator/Transaction";
+import { DELETE, GET, IgnoreNextMiddlewares, Path, PathParam, POST, PUT, QueryParam } from "typescript-rest";
+import { Inject } from "typescript-ioc";
+import { AnnotationTaskRepository } from "../persistence/dao/AnnotationTaskRepository";
+import { AnnotationTask } from "../persistence/model/AnnotationTask";
+import { CorpusRepository } from "../persistence/dao/CorpusRepository";
+import { Corpus } from "../persistence/model/Corpus";
+import { Document } from "/home/cgawron/git/tagflip-backend/src/app/persistence/model/Document"
+import { v4 as uuidv4 } from 'uuid';
+import { BeginTransaction } from "../persistence/decorator/Transaction";
 import * as short from "short-uuid";
-import {AnnotationTaskDocumentRepository} from "../persistence/dao/AnnotationTaskDocumentRepository";
-import {AnnotationTaskDocument} from "../persistence/model/AnnotationTaskDocument";
-import {AnnotationTaskAttributes, AnnotationTaskMeta, DocumentAnnotationState, Meta} from "@fhswf/tagflip-common";
-import {AnnotationTaskState} from "../persistence/model/AnnotationTaskState";
-import {AnnotationTaskStateRepository} from "../persistence/dao/AnnotationTaskStateRepository";
+import { AnnotationTaskDocumentRepository } from "../persistence/dao/AnnotationTaskDocumentRepository";
+import { AnnotationTaskDocument } from "../persistence/model/AnnotationTaskDocument";
+import { AnnotationTaskMeta, DocumentAnnotationState, Meta } from "@fhswf/tagflip-common";
+import { AnnotationTaskState } from "../persistence/model/AnnotationTaskState";
+import { AnnotationTaskStateRepository } from "../persistence/dao/AnnotationTaskStateRepository";
 import * as _ from "lodash";
-import {Op} from "sequelize";
+import { Op } from "sequelize";
 
 @Path("annotationtask")
 export class AnnotationTaskController {
@@ -34,57 +35,64 @@ export class AnnotationTaskController {
     @Path("generate/:corpusId/:partitions")
     @BeginTransaction
     @IgnoreNextMiddlewares
-    public async generate(@PathParam("corpusId") corpusId: number,
-                          @PathParam("partitions") partitions: number,
-                          @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask[] | (AnnotationTask & Meta<AnnotationTaskMeta>)[]> {
+    public async generate(
+        @PathParam("corpusId") corpusId: number,
+        @PathParam("partitions") partitions: number,
+        @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask[] | (AnnotationTask & Meta<AnnotationTaskMeta>)[]> {
         const corpus: Corpus = await this.corpusRepository.read(corpusId);
         const documents = await corpus.getDocuments();
 
         if (partitions > documents.length)
             partitions = documents.length;
         const documentPartitions = _.chunk(documents, Math.ceil(documents.length / partitions))
-        const annotationTasks = [];
+        const annotationTasks: AnnotationTask[] = [];
 
         const annotationTaskStateIdOpen = (await this.annotationTaskStateRepository.getByName("open")).annotationTaskStateId
         const uuid = uuidv4();
         const shortUuid = short().fromUUID(uuid)
-        const latestCount = await this.annotationTaskRepository.count({where: {"annotationTaskStateId": annotationTaskStateIdOpen}});
-        for (let partitionIndex in documentPartitions) {
-            let partition = documentPartitions[partitionIndex];
-            let partitionNumber = Number.parseInt(partitionIndex) + 1;
-            let newAnnotationTask = await this.annotationTaskRepository.save({
+        const latestCount = await this.annotationTaskRepository.count({ where: { "annotationTaskStateId": annotationTaskStateIdOpen } });
+        await this.getAnnotationTasks(documentPartitions, corpus, latestCount, shortUuid, withMeta, annotationTasks);
+        return annotationTasks;
+    }
+
+    private async getAnnotationTasks(documentPartitions: Document[][],
+        corpus: Corpus, latestCount: number, shortUuid: string, withMeta: boolean | undefined,
+        annotationTasks: AnnotationTask[]) {
+        for (let partitionIndex = 0; partitionIndex < documentPartitions.length; partitionIndex++) {
+            const partition = documentPartitions[partitionIndex];
+            //const partitionNumber = partitionIndex + 1;
+            const newAnnotationTask = await this.annotationTaskRepository.save({
                 corpusId: corpus.corpusId,
-                priority: (latestCount + Number.parseInt(partitionIndex)),
+                priority: (latestCount + partitionIndex),
                 annotationTaskStateId: (await this.annotationTaskStateRepository.getByName("open")).annotationTaskStateId,
-                name: "Generated Task [Corpus: " + corpus.name + ", Partition " + partitionNumber + "/" + documentPartitions.length + "] (" + shortUuid + ")",
-                description: "Autogenerated Task for Corpus '" + corpus.name + "'. Partition " + partitionNumber + "/" + documentPartitions.length + " of universe " + shortUuid + "."
-            } as AnnotationTask)
+                name: `Generated Task [Corpus: {corpus.name}, Partition {partitionNumber}/{documentPartitions.length}] ({shortUuid})`,
+                description: `Autogenerated Task for Corpus '{corpus.name}'. Partition {partitionNumber}/{documentPartitions.length} of universe {shortUuid}.`
+            } as AnnotationTask);
 
             let documentCount = 0;
-            for (let document of partition) {
+            for (const document of partition) {
                 await this.annotationTaskDocumentRepository.save({
                     documentId: document.documentId,
                     annotationTaskId: newAnnotationTask.annotationTaskId,
                     state: DocumentAnnotationState.open
-                } as AnnotationTaskDocument)
+                } as AnnotationTaskDocument);
                 documentCount++;
             }
             if (!withMeta) {
-                annotationTasks.push(newAnnotationTask)
+                annotationTasks.push(newAnnotationTask);
             } else {
-                let annotationTaskMeta: Meta<AnnotationTaskMeta> = {
+                const annotationTaskMeta: Meta<AnnotationTaskMeta> = {
                     meta: {
                         numberOfDocuments: documentCount,
                         numberOfClosedDocuments: 0,
                         numberOfOpenDocuments: documentCount
                     }
-                }
-                let newAnnotationTaskPure = this.annotationTaskRepository.toPlain(newAnnotationTask);
-                Object.assign(newAnnotationTaskPure, annotationTaskMeta)
-                annotationTasks.push(newAnnotationTaskPure)
+                };
+                const newAnnotationTaskPure = this.annotationTaskRepository.toPlain(newAnnotationTask);
+                Object.assign(newAnnotationTaskPure, annotationTaskMeta);
+                annotationTasks.push(newAnnotationTaskPure);
             }
         }
-        return annotationTasks;
     }
 
     @GET
@@ -96,27 +104,29 @@ export class AnnotationTaskController {
 
     @GET
     @IgnoreNextMiddlewares
-    public async list(@QueryParam("state") state: string = "", @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask[] | (AnnotationTask & Meta<AnnotationTaskMeta>)[]> {
-        let where = {}
+    public async list(
+        @QueryParam("state") state = "",
+        @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask[] | (AnnotationTask & Meta<AnnotationTaskMeta>)[]> {
+        const where = {}
         let annotationTaskState: AnnotationTaskState;
         if (state) {
             annotationTaskState = await this.annotationTaskStateRepository.getByName(state);
-            Object.assign(where, {where: {annotationTaskStateId: annotationTaskState.annotationTaskStateId}})
+            Object.assign(where, { where: { annotationTaskStateId: annotationTaskState.annotationTaskStateId } })
         } else {
             // determine visible states
-            let visibleStates : AnnotationTaskState[] = await this.annotationTaskStateRepository.list({where: {visible:true}});
-            Object.assign(where, {where: {annotationTaskStateId: {[Op.in]: visibleStates.map(s => s.annotationTaskStateId)}}})
+            const visibleStates: AnnotationTaskState[] = await this.annotationTaskStateRepository.list({ where: { visible: true } });
+            Object.assign(where, { where: { annotationTaskStateId: { [Op.in]: visibleStates.map(s => s.annotationTaskStateId) } } })
         }
 
-        let annotationTasks = await this.annotationTaskRepository.list({include: ['corpus'], ...where});
+        const annotationTasks = await this.annotationTaskRepository.list({ include: ['corpus'], ...where });
         if (!withMeta)
             return annotationTasks;
 
         // determine meta data
-        let annotationTaskResult = []
-        for (let annotationTask of annotationTasks) {
-            let annotationTaskPure = this.annotationTaskRepository.toPlain(annotationTask);
-            Object.assign(annotationTaskPure, {meta: await this.annotationTaskDocumentRepository.getAnnotationTaskMeta(annotationTask.annotationTaskId)})
+        const annotationTaskResult = []
+        for (const annotationTask of annotationTasks) {
+            const annotationTaskPure = this.annotationTaskRepository.toPlain(annotationTask);
+            Object.assign(annotationTaskPure, { meta: await this.annotationTaskDocumentRepository.getAnnotationTaskMeta(annotationTask.annotationTaskId) })
             annotationTaskResult.push(annotationTaskPure)
         }
         return annotationTaskResult;
@@ -125,11 +135,11 @@ export class AnnotationTaskController {
 
     @Path(":id")
     @GET
-    public async read(@PathParam("id") annotationTaskId: number, @QueryParam("withMeta") withMeta?: boolean): Promise<AnnotationTask> {
-        let annotationTask = await this.annotationTaskRepository.read(annotationTaskId, 'defaultScope', {include: ['corpus']});
-        let annotationTaskMeta = await this.annotationTaskDocumentRepository.getAnnotationTaskMeta(annotationTaskId)
-        let annotationTaskPure = this.annotationTaskRepository.toPlain(annotationTask);
-        Object.assign(annotationTaskPure, {meta: annotationTaskMeta})
+    public async read(@PathParam("id") annotationTaskId: number): Promise<AnnotationTask> {
+        const annotationTask = await this.annotationTaskRepository.read(annotationTaskId, 'defaultScope', { include: ['corpus'] });
+        const annotationTaskMeta = await this.annotationTaskDocumentRepository.getAnnotationTaskMeta(annotationTaskId)
+        const annotationTaskPure = this.annotationTaskRepository.toPlain(annotationTask);
+        Object.assign(annotationTaskPure, { meta: annotationTaskMeta })
         return annotationTaskPure;
     }
 
@@ -143,18 +153,18 @@ export class AnnotationTaskController {
     @PUT
     @BeginTransaction
     public async update(annotationTask: AnnotationTask): Promise<AnnotationTask | null> {
-        let oldAnnotationTask = await this.annotationTaskRepository.read(annotationTask.annotationTaskId);
+        const oldAnnotationTask = await this.annotationTaskRepository.read(annotationTask.annotationTaskId);
         let savedAnnotationTask;
         if (oldAnnotationTask.annotationTaskStateId !== annotationTask.annotationTaskStateId) {
-            await this.annotationTaskRepository.incrementPrioritiesAfter(annotationTask.annotationTaskStateId, annotationTask.priority);
+            this.annotationTaskRepository.incrementPrioritiesAfter(annotationTask.annotationTaskStateId, annotationTask.priority);
             savedAnnotationTask = await this.annotationTaskRepository.save(annotationTask);
-            await this.annotationTaskRepository.decrementPrioritiesAfter(oldAnnotationTask.annotationTaskStateId, oldAnnotationTask.priority);
+            this.annotationTaskRepository.decrementPrioritiesAfter(oldAnnotationTask.annotationTaskStateId, oldAnnotationTask.priority);
         } else {
             if (oldAnnotationTask.priority < annotationTask.priority) {
-                await this.annotationTaskRepository.decrementPrioritiesAfter(oldAnnotationTask.annotationTaskStateId, oldAnnotationTask.priority, annotationTask.priority);
+                this.annotationTaskRepository.decrementPrioritiesAfter(oldAnnotationTask.annotationTaskStateId, oldAnnotationTask.priority, annotationTask.priority);
                 savedAnnotationTask = await this.annotationTaskRepository.save(annotationTask);
             } else {
-                await this.annotationTaskRepository.incrementPrioritiesAfter(oldAnnotationTask.annotationTaskStateId, annotationTask.priority, oldAnnotationTask.priority);
+                this.annotationTaskRepository.incrementPrioritiesAfter(oldAnnotationTask.annotationTaskStateId, annotationTask.priority, oldAnnotationTask.priority);
                 savedAnnotationTask = await this.annotationTaskRepository.save(annotationTask);
             }
         }

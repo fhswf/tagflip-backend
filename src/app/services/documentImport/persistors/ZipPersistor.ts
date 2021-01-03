@@ -1,5 +1,5 @@
-import {Document} from "../../../persistence/model/Document";
-import DocumentPersistor, {mimetypes} from "./DocumentPersistor";
+import { Document } from "../../../persistence/model/Document";
+import DocumentPersistor, { mimetypes } from "./DocumentPersistor";
 import * as streamBuffers from 'stream-buffers';
 import * as fs from 'fs';
 import * as unzipper from 'unzipper';
@@ -14,31 +14,36 @@ import * as rimraf from "rimraf"
 export default class ZipPersistor extends DocumentPersistor {
 
     async persist(corpusId: number, file: Express.Multer.File): Promise<Document[]> {
-        let readableBuffer = new streamBuffers.ReadableStreamBuffer();
+        const readableBuffer = new streamBuffers.ReadableStreamBuffer();
         readableBuffer.put(file.buffer)
         readableBuffer.stop();
 
-        let tmpZip = tmp.dirSync()
+        const tmpZip = tmp.dirSync()
         console.log('Creating temporary directory: ', tmpZip.name);
 
-        await readableBuffer.pipe(unzipper.Extract({path: tmpZip.name})).promise();
-        const documents : Document[] = []
+        await readableBuffer.pipe(unzipper.Extract({ path: tmpZip.name })).promise();
+        const documents: Document[] = []
 
         const files = await new Promise<string[]>((resolve, reject) => {
             recursive(tmpZip.name, [], (err, files) => {
-                resolve(files)
+                if (err) {
+                    reject(err)
+                }
+                else {
+                    resolve(files)
+                }
             })
         })
 
-        let errors = []
-        for (let file of files) {
-            let buffer = fs.readFileSync(file)
+        const errors = []
+        for (const file of files) {
+            const buffer = fs.readFileSync(file)
             let mimetype = mime.lookup(file)
             if (!mimetype) {
                 mimetype = "text/plain"
             }
-            let encoding = chardet.detect(buffer)
-            let multerFile = {
+            const encoding = chardet.detect(buffer)
+            const multerFile = {
                 originalname: path.basename(file),
                 encoding: encoding,
                 mimetype: mimetype,
@@ -47,10 +52,10 @@ export default class ZipPersistor extends DocumentPersistor {
                 buffer: buffer,
             } as Express.Multer.File
 
-            let persistor = DocumentPersistor.forType(mimetype);
+            const persistor = DocumentPersistor.forType(mimetype);
             try {
-                let newDocs = await persistor.persist(corpusId, multerFile);
-                documents.push(... newDocs)
+                const newDocs = await persistor.persist(corpusId, multerFile);
+                documents.push(...newDocs)
             } catch (err) {
                 rimraf.sync(path.join(tmpZip.name, "/*"))
                 tmpZip.removeCallback()
@@ -60,7 +65,7 @@ export default class ZipPersistor extends DocumentPersistor {
                 throw err;
             }
             finally {
-
+                // do nothing
             }
         }
         rimraf.sync(path.join(tmpZip.name, "/*"))
