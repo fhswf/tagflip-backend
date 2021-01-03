@@ -1,9 +1,9 @@
 import "../index";
-import {Errors} from "typescript-rest";
-import {Model, Repository} from "sequelize-typescript";
-import {sequelize} from "../index";
-import {CountOptions, FindOptions, Identifier, InstanceUpdateOptions} from "sequelize";
-import {ScopeOptions} from "sequelize/types/lib/model";
+import { Errors } from "typescript-rest";
+import { Model, Repository } from "sequelize-typescript";
+import { sequelize } from "../index";
+import { CountOptions, FindOptions, Identifier, InstanceUpdateOptions } from "sequelize";
+import { ScopeOptions } from "sequelize/types/lib/model";
 
 export abstract class GenericRepository<T extends Model<T>> {
 
@@ -17,13 +17,13 @@ export abstract class GenericRepository<T extends Model<T>> {
 
     public abstract isNew(id: Identifier): boolean;
 
-    public async abstract validate(entity: T): Promise<void | never>;
+    public abstract validate(entity: T): Promise<void | never>;
 
     public async read(id: Identifier, scope: string | ScopeOptions = 'defaultScope', options?: FindOptions): Promise<T> {
         if (this.isNew(id)) {
             throw new Errors.NotFoundError("Given ID is missing or invalid.");
         }
-        let entity = await this.repository.scope(scope).findByPk(id, options);
+        const entity = await this.repository.scope(scope).findByPk(id, options);
         if (!entity) {
             throw new Errors.NotFoundError("No entity for given ID.");
         }
@@ -35,7 +35,7 @@ export abstract class GenericRepository<T extends Model<T>> {
             return false;
         }
 
-        let entity = await this.repository.findByPk(id);
+        const entity = await this.repository.findByPk(id);
         return entity !== null;
     }
 
@@ -47,31 +47,31 @@ export abstract class GenericRepository<T extends Model<T>> {
         return this.repository.findOne({ where: { name: name } })
     }
 
-    public async count(options?:CountOptions): Promise<number> {
+    public async count(options?: CountOptions): Promise<number> {
         return this.repository.count(options)
     }
 
-    public build(entity: T) {
+    public build(entity: T): T {
         return this.repository.build(entity)
     }
 
-    public toPlain(entity: T) : T{
-        return entity.get({plain:true}) as T;
+    public toPlain(entity: T): T {
+        return entity.get({ plain: true }) as T;
     }
 
-    public async save(entity: T, options?:InstanceUpdateOptions): Promise<T> {
+    public async save(entity: T, options?: InstanceUpdateOptions): Promise<T> {
         await this.validate(entity);
         if (this.isNew(this.getId(entity))) {
             return this.build(entity).save(options);
         }
 
-        let foundEntity = await this.read(this.getId(entity));
+        const foundEntity = await this.read(this.getId(entity));
         return foundEntity.update(entity, options);
     }
 
     public async delete(id: Identifier): Promise<void> {
-        let entity = await this.read(id);
-        entity.destroy();
+        const entity = await this.read(id);
+        void entity.destroy();
     }
 
     public getSequelizeRepository(): Repository<T> {
