@@ -4,7 +4,7 @@ import { AnnotationTaskRepository } from "../persistence/dao/AnnotationTaskRepos
 import { AnnotationTask } from "../persistence/model/AnnotationTask";
 import { CorpusRepository } from "../persistence/dao/CorpusRepository";
 import { Corpus } from "../persistence/model/Corpus";
-import { Document } from "/home/cgawron/git/tagflip-backend/src/app/persistence/model/Document"
+import { Document } from "../persistence/model/Document"
 import { v4 as uuidv4 } from 'uuid';
 import { BeginTransaction } from "../persistence/decorator/Transaction";
 import * as short from "short-uuid";
