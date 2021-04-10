@@ -46,6 +46,7 @@
     "adm-zip": "^0.4.16",
     "chardet": "^1.2.1",
     "chroma-js": "^2.1.0",
+    "class-transformer": "^0.4.0",
     "cls-hooked": "^4.2.2",
     "cookie-parser": "~1.4.5",
     "cors": "~2.8.5",

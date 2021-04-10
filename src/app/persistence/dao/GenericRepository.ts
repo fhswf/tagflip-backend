@@ -17,7 +17,7 @@ export abstract class GenericRepository<T extends Model<T>> {
 
     public abstract isNew(id: Identifier): boolean;
 
-    public async abstract validate(entity: T): Promise<void | never>;
+    public abstract validate(entity: T): Promise<void | never>;
 
     public async read(id: Identifier, scope: string | ScopeOptions = 'defaultScope', options?: FindOptions): Promise<T> {
         if (this.isNew(id)) {
