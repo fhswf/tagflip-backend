@@ -1,3 +1,7 @@
+import {
+  HttpError,
+  UnprocessableEntityError,
+} from "typescript-rest/dist/server/model/errors";
 import AbstractExporter, { Exporter } from "../AbstractExporter";
 import { Inject } from "typescript-ioc";
 import { CorpusRepository } from "../../../../persistence/dao/CorpusRepository";
@@ -33,6 +37,7 @@ class SentencePartition {
   get partitionNumber(): number {
     return this._partitionNumber;
   }
+
   set partitionNumber(value: number) {
     this._partitionNumber = value;
   }
@@ -48,72 +53,17 @@ class SentencePartition {
   get lastEndIndex(): number {
     return this._lastEndIndex;
   }
+
   get firstStartIndex(): number {
     return this._firstStartIndex;
   }
+
   get assignedTags(): Tag[] {
     return this._assignedTags;
   }
 
   set assignedTags(value: Tag[]) {
     this._assignedTags = value;
-  }
-}
-
-class TagPartition {
-  private readonly _partitionNumber: number;
-  private _tags: Tag[];
-  private _sentences: Sentence[] = [];
-  private _firstStartIndex: number = -1;
-  private _lastEndIndex: number = -1;
-
-  constructor(_partitionNumber: number, tags: Tag[]) {
-    this._partitionNumber = _partitionNumber;
-    this._tags = tags;
-    // this._firstStartIndex = _.min(tags.map(x => x.startIndex)) || -1
-    // let firstStartIndex = _.min(tags.map(x => x.startIndex))
-    // if (firstStartIndex === undefined)
-    //     throw new Error('could not find first index in partition')
-    // this._firstStartIndex = firstStartIndex
-    // let lastEndIndex = _.max(tags.map(x => x.endIndex)) || -1
-    // if (lastEndIndex=== undefined)
-    //     throw new Error('could not find last index in partition')
-    // this._lastEndIndex = lastEndIndex
-  }
-
-  get partitionNumber(): number {
-    return this._partitionNumber;
-  }
-
-  get tags(): Tag[] {
-    return this._tags;
-  }
-
-  set tags(value: Tag[]) {
-    this._tags = value;
-  }
-
-  get sentences(): Sentence[] {
-    return this._sentences;
-  }
-
-  set sentences(value: Sentence[]) {
-    this._sentences = value;
-  }
-
-  get firstStartIndex(): number {
-    return this._firstStartIndex;
-  }
-
-  get lastEndIndex(): number {
-    return this._lastEndIndex;
-  }
-
-  set lastEndIndex(value: number) {
-    this._lastEndIndex = value;
-  }
-  set firstStartIndex(value: number) {
-    this._firstStartIndex = value;
   }
 }
 
@@ -231,16 +181,21 @@ class Token {
 }
 
 class TagSeries {
-  static INDEX_COUNTER: number = 1;
+  private static _INDEX_COUNTER: number = 1;
 
   private _tag!: Tag;
   private _seriesLength!: number;
   private _disambiguationID!: number;
 
+  private _firstTokenHasBeenWritten!: boolean;
+  private _writeOrderIndex?: number;
+
   constructor(tag: Tag, disambiguationID: number, seriesLength: number = 0) {
     this._tag = tag;
     this._seriesLength = seriesLength;
     this._disambiguationID = disambiguationID;
+    this._firstTokenHasBeenWritten = false;
+    this._writeOrderIndex = undefined;
   }
 
   get disambiguationID(): number {
@@ -266,6 +221,27 @@ class TagSeries {
   set tag(value: Tag) {
     this._tag = value;
   }
+
+  get firstTokenHasBeenWritten(): boolean {
+    return this._firstTokenHasBeenWritten;
+  }
+
+  set firstTokenHasBeenWritten(value: boolean) {
+    this._firstTokenHasBeenWritten = value;
+  }
+
+  get writeOrderIndex(): number | undefined {
+    return this._writeOrderIndex;
+  }
+
+  set writeOrderIndex(value: number | undefined) {
+    this._writeOrderIndex = value;
+  }
+
+  asIOB(): string {
+    if (this.firstTokenHasBeenWritten) return "I_" + this.tag.annotation.name;
+    return "B_" + this.tag.annotation.name;
+  }
 }
 
 enum State {
@@ -288,14 +264,15 @@ export class TSV32Exporter extends AbstractExporter {
 
   protected async doExport(
     corpusId: number,
-    targetFolder: string
+    targetFolder: string,
+    iob?: boolean
   ): Promise<any> {
     let corpus: Corpus = await this.corpusRepository.read(corpusId);
     const documents: Document[] = await corpus.getDocuments({ scope: "full" });
     for (let document of documents) {
       fs.writeFileSync(
         path.join(targetFolder, document.filename + ".tsv"),
-        await this.documentToTSV(document)
+        await this.documentToTSV(document, iob || false)
       );
     }
   }
@@ -308,7 +285,7 @@ export class TSV32Exporter extends AbstractExporter {
     let sentences = [];
     let sentenceNumber = 0;
     for (let char of text) {
-      if (/\w/.test(char)) {
+      if (/[\wäßüö\-\_\+]/.test(char)) {
         if (state !== State.WORD) {
           if (token.hasText()) {
             token.endIndex = index;
@@ -355,6 +332,7 @@ export class TSV32Exporter extends AbstractExporter {
     sentenceNumber: number,
     tokenNumber: number,
     token: Token,
+    iob: boolean,
     subtokenNumber?: number
   ): string {
     let line = [];
@@ -380,19 +358,76 @@ export class TSV32Exporter extends AbstractExporter {
     // coveringTags can be handled immediately ...
     // let asteriskLine = []
     let tagLine = [];
+
     if (coveringTags.length === 0) {
       // asteriskLine.push("_")
-      tagLine.push("_");
+      if (iob) {
+        tagLine.push("O");
+      } else {
+        tagLine.push("_");
+      }
     } else {
-      for (let tag of coveringTags) {
-        if (tag.seriesLength === 1) {
-          // asteriskLine.push("*")
-          tagLine.push(tag.tag.annotation.name);
-        } else {
-          // asteriskLine.push("*"+"["+ tag.disambiguationID + "]")
-          tagLine.push(
-            tag.tag.annotation.name + "[" + tag.disambiguationID + "]"
-          );
+      if (iob) {
+        // if (coveringTags.length > 2) {
+        //   throw new UnprocessableEntityError(
+        //     "Currently only two nested tags are allowed. Found: " +
+        //       coveringTags.length +
+        //       " at sentence: " +
+        //       sentenceNumber +
+        //       ", token: " +
+        //       tokenNumber
+        //   );
+        // }
+        let tagLineMap = coveringTags.map((_) => "O");
+        for (let tag of coveringTags.sort((x) => -x.seriesLength)) {
+          if (tag.firstTokenHasBeenWritten) {
+            tagLineMap[tag.writeOrderIndex || 0] = tag.asIOB();
+          } else {
+            // find minimum free index
+            let minIndex = _.min(
+              coveringTags
+                .filter(
+                  (x) =>
+                    x.writeOrderIndex != undefined && x.writeOrderIndex >= 0
+                )
+                .map((x) => x.writeOrderIndex)
+            );
+            let maxIndex = _.max(
+              coveringTags
+                .filter(
+                  (x) =>
+                    x.writeOrderIndex != undefined && x.writeOrderIndex >= 0
+                )
+                .map((x) => x.writeOrderIndex)
+            );
+            if (minIndex == undefined) minIndex = 0;
+            // @ts-ignore
+            else if (minIndex <= 0) {
+              // @ts-ignore
+              minIndex = maxIndex + 1;
+            } else {
+              minIndex -= 1;
+            }
+            tag.writeOrderIndex = minIndex;
+            tagLineMap[tag.writeOrderIndex || 0] = tag.asIOB();
+            tag.firstTokenHasBeenWritten = true;
+          }
+        }
+        for (const tag of tagLineMap) {
+          // @ts-ignore
+          tagLine.push(tag);
+        }
+      } else {
+        for (let tag of coveringTags) {
+          if (tag.seriesLength === 1) {
+            // asteriskLine.push("*")
+            tagLine.push(tag.tag.annotation.name);
+          } else {
+            // asteriskLine.push("*"+"["+ tag.disambiguationID + "]")
+            tagLine.push(
+              tag.tag.annotation.name + "[" + tag.disambiguationID + "]"
+            );
+          }
         }
       }
     }
@@ -442,6 +477,7 @@ export class TSV32Exporter extends AbstractExporter {
             sentenceNumber,
             tokenNumber,
             subtoken,
+            iob,
             subtokenNumber++
           )
         );
@@ -468,7 +504,7 @@ export class TSV32Exporter extends AbstractExporter {
     return line.join("");
   }
 
-  private sentencesToTSV(sentences: Sentence[]): string {
+  private sentencesToTSV(sentences: Sentence[], iob: boolean): string {
     let lines = [];
     lines.push("#FORMAT=WebAnno TSV 3.2");
     lines.push("#T_SP=webanno.custom.TagFlip|value");
@@ -481,7 +517,9 @@ export class TSV32Exporter extends AbstractExporter {
         let tokenNumber = 1;
         lines.push(this.tokensToSentenceString(sentence.tokens));
         for (let token of sentence.tokens) {
-          lines.push(this.tokenToTSV(sentenceNumber, tokenNumber++, token));
+          lines.push(
+            this.tokenToTSV(sentenceNumber, tokenNumber++, token, iob)
+          );
         }
         lines.push("");
         sentenceNumber++;
@@ -491,7 +529,10 @@ export class TSV32Exporter extends AbstractExporter {
     return lines.join("\n");
   }
 
-  private async documentToTSV(document: Document): Promise<string> {
+  private async documentToTSV(
+    document: Document,
+    iob: boolean
+  ): Promise<string> {
     let text = document.content || "";
     let tags = _.sortBy(
       await document.getTags({ include: ["annotation"] }),
@@ -504,7 +545,7 @@ export class TSV32Exporter extends AbstractExporter {
     let disambiguationId = 1;
     tags.forEach((t) => disambiguationIds.push(disambiguationId++));
 
-    let time = new Date().getTime();
+    // let time = new Date().getTime();
     let sentences = this.tokenize(text);
     let partitions: SentencePartition[] = await this.generateSentenceSplits(
       tags,
@@ -530,14 +571,6 @@ export class TSV32Exporter extends AbstractExporter {
           partitionDisambiguationIds
         )
       );
-      // totalSentencePromises.push(dynamicPool.exec({
-      //     task: assignTagsToTokens,
-      //     param:{
-      //         relevantTags: partition.assignedTags,
-      //         sentences: partition.sentences,
-      //         disambiguationIds: partitionDisambiguationIds
-      //     }
-      // }))
     }
     let totalSentences: Sentence[] = [];
     await Promise.all(totalSentencePromises).then((result: Sentence[][]) => {
@@ -545,15 +578,15 @@ export class TSV32Exporter extends AbstractExporter {
         totalSentences.push(...sentences);
       }
     });
-    console.log(
-      "Processing",
-      sentences.length,
-      "sentences took",
-      new Date().getTime() - time,
-      "ms"
-    );
+    // console.log(
+    //   "Processing",
+    //   sentences.length,
+    //   "sentences took",
+    //   new Date().getTime() - time,
+    //   "ms"
+    // );
 
-    return this.sentencesToTSV(totalSentences);
+    return this.sentencesToTSV(totalSentences, iob);
   }
 
   private async generateSentenceSplits(
@@ -637,6 +670,10 @@ export class TSV32Exporter extends AbstractExporter {
 
     return sortedPartitions;
   }
+
+  supportsIOB(): boolean {
+    return true;
+  }
 }
 
 async function assignTagsToTokens(
@@ -675,11 +712,6 @@ async function assignTagsToTokens(
     }
     // reduce tags to future relevant
     tags = _.filter(tags, (t) => t.startIndex >= sentence.firstStartIndex); // TODO: performance could be improved using binary search via startIndex.. lodash does not provide a function for that -> filter for now. write custom binary search
-
-    let endTime = new Date().getTime();
-    // deltas.shift();
-    // deltas.push(endTime - startTime);
-    // console.log("Processing sentence", index++, "of", sentences.length, "took", endTime - startTime, "ms.", "avg:", deltas.reduce((acc, c) => acc + c) / deltas.length)
   }
 
   return sentences;
