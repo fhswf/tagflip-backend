@@ -15,8 +15,8 @@ import { CoNLLImporter } from "./CoNLLImporter";
 export class GermEval2014_Importer extends CoNLLImporter {
 
     protected static EXT: string[] = [".conll"]
-    protected static NER_FIELD = 2
-    protected static WORD_FIELD = 1
+    protected static NER_FIELD: number = 2
+    protected static WORD_FIELD: number = 1
     protected static SPLITTER: RegExp = /\t/
 
     constructor() {
