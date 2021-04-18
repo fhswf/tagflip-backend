@@ -14,10 +14,10 @@ import { CoNLLImporter } from "./CoNLLImporter";
 @Importer("GermEval2014 (NER)")
 export class GermEval2014_Importer extends CoNLLImporter {
 
-    static EXT: string[] = [".conll"]
-    static NER_FIELD = 2
-    static WORD_FIELD = 1
-    static SPLITTER = /\t/
+    protected static EXT: string[] = [".conll"]
+    protected static NER_FIELD = 2
+    protected static WORD_FIELD = 1
+    protected static SPLITTER: RegExp = /\t/
 
     constructor() {
         super(GermEval2014_Importer.WORD_FIELD, GermEval2014_Importer.NER_FIELD, GermEval2014_Importer.SPLITTER)

@@ -34,8 +34,8 @@ export class CoNLLImporter extends AbstractImporter {
             console.log('CoNLL: Importing %s', file)
             const stream = fs.createReadStream(file)
             const input = createInterface({
-                input: stream,
                 crlfDelay: Infinity,
+                input: stream,
             })
 
             let text = ""
@@ -65,9 +65,9 @@ export class CoNLLImporter extends AbstractImporter {
             }
 
             const document: ImportDocument = {
-                tags: tags,
+                content: text,
                 fileName: path.basename(file),
-                content: text
+                tags: tags,
             }
 
             console.info('CoNLL import: %j', document)
@@ -103,9 +103,9 @@ export class CoNLLImporter extends AbstractImporter {
                     // start new tag
                     tagSet.add(tag.split('-')[1])
                     current[j] = {
+                        annotation: { name: tag.split('-')[1] },
                         fromIndex: start[i],
                         toIndex: -1,
-                        annotation: { name: tag.split('-')[1] }
                     }
                 }
             })
@@ -118,6 +118,6 @@ export class CoNLLImporter extends AbstractImporter {
             }
         })
 
-        return { text: text, annotations: annos, tagSet: tagSet }
+        return { annotations: annos, tagSet: tagSet, text: text, }
     }
 }
