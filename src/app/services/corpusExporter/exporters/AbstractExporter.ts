@@ -1,9 +1,9 @@
-import {NotFoundError} from "typescript-rest/dist/server/model/errors";
+import { NotFoundError } from "typescript-rest/dist/server/model/errors";
 import * as tmp from "tmp";
 import * as rimraf from "rimraf";
 import * as path from "path";
 import * as AdmZip from "adm-zip";
-import {BeginTransaction} from "../../../persistence/decorator/Transaction";
+import { BeginTransaction } from "../../../persistence/decorator/Transaction";
 
 /**
  * Declares a type being an exporter for an annotated Corpus.
@@ -84,7 +84,7 @@ export default abstract class AbstractExporter {
     }
 
     @BeginTransaction
-    private async exportWithinTransaction(corpusId: number, targetFolder: string) : Promise<void> {
+    private async exportWithinTransaction(corpusId: number, targetFolder: string): Promise<void> {
         return this.doExport(corpusId, targetFolder);
     }
 
@@ -93,7 +93,7 @@ export default abstract class AbstractExporter {
      * @param corpusId the ID of the corpus to be exported.
      * @param targetFolder a folder in the local filesystem where the export result can be stored safely
      */
-    protected abstract async doExport(corpusId: number, targetFolder: string): Promise<void>
+    protected abstract doExport(corpusId: number, targetFolder: string): Promise<void>
 
 
 }

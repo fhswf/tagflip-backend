@@ -1,4 +1,4 @@
-import {Document} from "../../../persistence/model/Document";
+import { Document } from "../../../persistence/model/Document";
 
 export default abstract class DocumentPersistor {
 
@@ -24,7 +24,7 @@ export default abstract class DocumentPersistor {
         throw new Error("Persistor unknown for mimetype " + mimetype);
     }
 
-    abstract async persist(corpusId: number, file: Express.Multer.File): Promise<Document[]>
+    abstract persist(corpusId: number, file: Express.Multer.File): Promise<Document[]>
 
 }
 
