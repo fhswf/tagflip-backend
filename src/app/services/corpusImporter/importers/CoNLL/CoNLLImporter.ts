@@ -14,9 +14,9 @@ interface Record {
 /** Abstract importer for CoNLL style tsv files
  */
 export class CoNLLImporter extends AbstractImporter {
-    wordField: any;
-    nerField: any;
-    splitter: RegExp | string;
+    protected wordField: number;
+    protected nerField: number;
+    protected splitter: RegExp | string;
 
     constructor(wordField: number, nerField: number, splitter: RegExp | string) {
         super()
@@ -25,23 +25,24 @@ export class CoNLLImporter extends AbstractImporter {
         this.splitter = splitter
     }
 
-    protected async doImport(corpusName: string, annotationSetName: string, files: string[]): Promise<ImportDocument[]> {
+    protected async doImport(corpusName: string, annotationSetName: string, files: string[]):
+        Promise<ImportDocument[]> {
         console.log('CoNLL: doImport: %s %s %o', corpusName, annotationSetName, files)
         const tagSet = new Set<string>()
         const documents = []
         for (const file of files) {
             console.log('CoNLL: Importing %s', file)
             const stream = fs.createReadStream(file)
-            let input = createInterface({
+            const input = createInterface({
                 input: stream,
-                crlfDelay: Infinity
+                crlfDelay: Infinity,
             })
 
             let text = ""
             let lines: string[][] = []
-            let tags: ImportTag[] = []
+            const tags: ImportTag[] = []
             for await (const line of input) {
-                let fields = line.split(this.splitter)
+                const fields = line.split(this.splitter)
                 if (fields[0].startsWith('#'))
                     continue;
 
@@ -63,7 +64,7 @@ export class CoNLLImporter extends AbstractImporter {
                 }
             }
 
-            let document: ImportDocument = {
+            const document: ImportDocument = {
                 tags: tags,
                 fileName: path.basename(file),
                 content: text
@@ -78,9 +79,9 @@ export class CoNLLImporter extends AbstractImporter {
     createRecord(lines: string[][]): Record {
         let text = ''
         const annos: ImportTag[] = []
-        let current: (ImportTag | null)[] = [null, null]
-        let start: number[] = []
-        let end: number[] = []
+        const current: (ImportTag | null)[] = [null, null]
+        const start: number[] = []
+        const end: number[] = []
         const tagSet = new Set<string>()
 
         lines.forEach((fields, i) => {
@@ -119,6 +120,4 @@ export class CoNLLImporter extends AbstractImporter {
 
         return { text: text, annotations: annos, tagSet: tagSet }
     }
-
-
 }

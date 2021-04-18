@@ -1,9 +1,4 @@
-import AbstractImporter, { ImportAnnotation, ImportDocument, Importer, ImportTag } from "../AbstractImporter";
-import { createInterface } from "readline";
-import * as path from "path";
-import * as fs from "fs";
-import * as _ from "lodash"
-import { Annotation } from 'src/app/persistence/model/Annotation';
+import { Importer } from "../AbstractImporter";
 import { CoNLLImporter } from "./CoNLLImporter";
 
 /** Import tsv files as used in GermEval2014.  
