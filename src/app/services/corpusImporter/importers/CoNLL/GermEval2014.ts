@@ -24,7 +24,7 @@ interface Record {
 @Importer("GermEval2014 (NER)")
 export class NoStaDImporter extends AbstractImporter {
 
-    static EXT = [".tsv"]
+    static EXT: string[] = [".tsv"]
 
     constructor() {
         super()
@@ -32,12 +32,11 @@ export class NoStaDImporter extends AbstractImporter {
 
     protected async doImport(corpusName: string, annotationSetName: string, files: string[]): Promise<ImportDocument[]> {
         console.log('NoStaD: doImport: %s %s %o', corpusName, annotationSetName, files)
-        let tagSet = new Set<string>()
-        //files = _.filter(files, x => path.extname(x) in NoStaDImporter.EXT) || []
-        let documents = []
+        const tagSet = new Set<string>()
+        const documents = []
         for (const file of files) {
             console.log('NoStaD: Importing %s', file)
-            let stream = fs.createReadStream(file)
+            const stream = fs.createReadStream(file)
             let input = createInterface({
                 input: stream,
                 crlfDelay: Infinity
@@ -55,7 +54,7 @@ export class NoStaDImporter extends AbstractImporter {
                 if (fields.length < 2) {
                     const record = this.createRecord(lines);
                     record.tagSet.forEach((tag) => tagSet.add(tag));
-                    let offset = text.length;
+                    const offset = text.length;
                     text += record.text + '\n';
                     record.annotations.forEach((anno) => {
                         anno.fromIndex += offset;
@@ -83,11 +82,11 @@ export class NoStaDImporter extends AbstractImporter {
 
     createRecord(lines: string[][]): Record {
         let text = ''
-        let annos: ImportTag[] = []
+        const annos: ImportTag[] = []
         let current: (ImportTag | null)[] = [null, null]
         let start: number[] = []
         let end: number[] = []
-        let tagSet = new Set<string>()
+        const tagSet = new Set<string>()
 
         lines.forEach((fields, i) => {
             start[i] = text.length
@@ -97,7 +96,7 @@ export class NoStaDImporter extends AbstractImporter {
             fields.slice(2).forEach((tag, j) => {
                 if (tag[0] != 'I') {
                     // Is the a tag to end?
-                    let marker = current[j]
+                    const marker = current[j]
                     if (marker != null) {
                         marker.toIndex = end[i - 1]
                         annos.push(marker)
