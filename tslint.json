@@ -1,3 +1,6 @@
 {
   "extends": "tslint:recommended",
+  "allowed-numbers": [
+    0
+  ]
 }
