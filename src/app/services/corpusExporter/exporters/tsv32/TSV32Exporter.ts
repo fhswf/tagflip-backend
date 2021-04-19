@@ -239,8 +239,8 @@ class TagSeries {
   }
 
   asIOB(): string {
-    if (this.firstTokenHasBeenWritten) return "I_" + this.tag.annotation.name;
-    return "B_" + this.tag.annotation.name;
+    if (this.firstTokenHasBeenWritten) return "I-" + this.tag.annotation.name;
+    return "B-" + this.tag.annotation.name;
   }
 }
 
